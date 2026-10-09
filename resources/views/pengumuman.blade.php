@@ -19,6 +19,8 @@
             }
         }
     </script>
+<link rel="stylesheet" href="{{ asset('css/asrama-tables.css') }}">
+<script src="{{ asset('js/asrama-tables.js') }}" defer></script>
 </head>
 
 <body class="bg-darkbg text-gray-100 min-h-screen flex">
@@ -138,7 +140,7 @@
 
         <!-- TABLE -->
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
+            <table data-local-table="data pengumuman" class="w-full text-sm text-left">
 
                 <thead class="text-gray-300 border-b border-gray-700">
                   <tr>
@@ -225,25 +227,6 @@
             </table>
         </div>
 
-        <!-- PAGINATION -->
-        <div class="flex justify-between items-center mt-6">
-
-            <p class="text-gray-400 text-sm">
-                Menampilkan 1–10 dari 30 data
-            </p>
-
-            <div class="flex gap-2">
-
-                <button class="pagination-btn">Prev</button>
-
-                <button class="pagination-btn active">1</button>
-                <button class="pagination-btn">2</button>
-                <button class="pagination-btn">3</button>
-
-                <button class="pagination-btn">Next</button>
-
-            </div>
-        </div>
 
     </div>
         </div>
@@ -277,7 +260,7 @@
     <!-- TABLE -->
     <div class="overflow-x-auto">
 
-        <table class="w-full text-sm">
+        <table data-local-table="data pengumuman" class="w-full text-sm">
 
             <thead class="border-b border-gray-700 text-gray-300">
                 <tr>
@@ -458,28 +441,12 @@ function closeKeluhanForm(){
 }
 
 /* SORTING FRONTEND */
-function sortKeluhan(type){
-
-    const table = document.getElementById("keluhanTable");
-    const rows = Array.from(table.rows);
-
-    if(type === "latest"){
-        rows.reverse();
-    }
-
-    if(type === "oldest"){
-        rows.reverse();
-    }
-
-    if(type === "status"){
-        rows.sort((a,b)=>
-            a.cells[2].innerText.localeCompare(b.cells[2].innerText)
-        );
-    }
-
-    table.innerHTML="";
-    rows.forEach(r=>table.appendChild(r));
+function sortKeluhan(type) {
+    document.getElementById('keluhanTable').closest('table').dispatchEvent(new CustomEvent('table-sort', {
+        detail: { index: type === 'status' ? 2 : 1, direction: type === 'latest' ? 'desc' : 'asc' }
+    }));
 }
+
 </script>
 
 

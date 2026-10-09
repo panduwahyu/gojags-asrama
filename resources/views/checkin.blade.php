@@ -136,6 +136,8 @@
             margin: 22px 0;
         }
     </style>
+<link rel="stylesheet" href="{{ asset('css/asrama-tables.css') }}">
+<script src="{{ asset('js/asrama-tables.js') }}" defer></script>
 </head>
 <body>
     <div class="container py-4">
@@ -185,7 +187,7 @@
                     </div>
 
                     <div class="table-responsive">
-                        <table class="table align-middle">
+                        <table data-local-table="data check-in" class="table align-middle">
                             <thead>
                                 <tr>
                                     <th>No. Kamar</th>

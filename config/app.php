@@ -99,11 +99,12 @@ return [
 
     'key' => env('APP_KEY'),
 
-    'previous_keys' => [
-        ...array_filter(
-            explode(',', (string) env('APP_PREVIOUS_KEYS', ''))
-        ),
-    ],
+    'providers' => Illuminate\Support\ServiceProvider::defaultProviders()->merge([
+        App\Providers\AppServiceProvider::class,
+        App\Providers\RouteServiceProvider::class,
+    ])->toArray(),
+
+    'aliases' => Illuminate\Support\Facades\Facade::defaultAliases()->toArray(),
 
     /*
     |--------------------------------------------------------------------------

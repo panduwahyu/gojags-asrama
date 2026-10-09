@@ -4,7 +4,10 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "dev:nuxt": "npm --prefix frontend run dev",
+        "build:nuxt": "npm --prefix frontend run build",
+        "dev:asrama": "concurrently --kill-others --names laravel,nuxt \"php artisan serve --host=127.0.0.1 --port=8000\" \"npm --prefix frontend run dev\""
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

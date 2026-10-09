@@ -7,6 +7,7 @@ use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
+    use \Illuminate\Foundation\Testing\RefreshDatabase;
     /**
      * A basic test example.
      */
@@ -14,6 +15,6 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertStatus(200);
+        $response->assertRedirect('/login');
     }
 }
