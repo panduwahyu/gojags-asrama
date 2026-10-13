@@ -11,8 +11,10 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "typecheck": "nuxt typecheck",
-    "test:smoke": "node scripts/smoke.mjs",
-    "test:browser": "playwright test"
+    "test:unit": "vitest run",
+    "test:browser": "playwright test",
+    "test:e2e": "playwright test -c playwright.e2e.config.ts",
+    "test:smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "nuxt": "^4.6.0",
@@ -24,6 +26,7 @@
     "@tailwindcss/vite": "^4.0.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.9.0",
+    "vitest": "^4.1.4",
     "vue-tsc": "^3.0.0"
   }
 }

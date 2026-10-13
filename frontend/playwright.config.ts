@@ -1,14 +1,12 @@
 import { defineConfig } from '@playwright/test'
+import { BASE_URL, NUXT_PORT, sharedConfig } from './tests/support/shared'
 
 export default defineConfig({
+  ...sharedConfig,
   testDir: './tests/browser',
-  use: {
-    baseURL: process.env.ASRAMA_URL || 'http://127.0.0.1:3000',
-    browserName: 'chromium',
-    channel: process.env.PLAYWRIGHT_CHANNEL || (process.platform === 'win32' ? 'msedge' : undefined),
-    headless: true,
-    colorScheme: 'light',
+  webServer: {
+    command: `npm run dev -- --port ${NUXT_PORT}`,
+    url: BASE_URL,
+    reuseExistingServer: !process.env.CI,
   },
-  workers: 1,
-  reporter: 'list',
 })

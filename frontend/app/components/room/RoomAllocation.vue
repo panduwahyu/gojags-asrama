@@ -35,7 +35,10 @@ async function allocate() {
 </script>
 
 <template>
-  <section class="card mt-6 p-5">
+  <section
+    aria-label="Alokasi kamar otomatis"
+    class="card mt-6 p-5"
+  >
     <h2 class="font-semibold">
       Alokasi kamar otomatis
     </h2>

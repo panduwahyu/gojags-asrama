@@ -47,11 +47,7 @@ const perPage = defineModel<number>('perPage', { required: true })
     >
       Sebelumnya
     </button>
-    <span
-      role="status"
-      aria-live="polite"
-      :aria-label="`Halaman ${current} dari ${last}`"
-    >
+    <span :aria-label="`Halaman ${current} dari ${last}`">
       {{ current }}/{{ last }}
     </span>
     <button

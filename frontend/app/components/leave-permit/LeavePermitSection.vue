@@ -6,6 +6,7 @@ const api = useApi()
 const action = useAction()
 const table = useTable<LeavePermit>('leave-permits')
 const editing = ref<LeavePermit | null>(null)
+const formKey = ref(0)
 
 usePolling(table.refresh, { pausedWhen: () => action.busy.value || table.loading.value })
 
@@ -16,6 +17,7 @@ async function save(input: LeavePermitInput) {
   )
   if (saved) {
     editing.value = null
+    formKey.value += 1
     table.goToFirstPage()
   }
   await table.refresh()
@@ -56,6 +58,7 @@ watch(table.rows, (rows) => {
 
     <LeavePermitForm
       v-if="!isAdmin"
+      :key="formKey"
       :permit="editing"
       :busy="action.busy.value"
       @save="save"

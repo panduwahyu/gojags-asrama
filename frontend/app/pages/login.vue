@@ -97,7 +97,7 @@ async function login() {
           <button
             type="button"
             :class="toggleBtnClass"
-            :aria-label="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
+            :aria-label="showPassword ? 'Sembunyikan sandi' : 'Tampilkan sandi'"
             aria-controls="login-password"
             :aria-pressed="showPassword"
             @click="showPassword = !showPassword"
@@ -110,7 +110,7 @@ async function login() {
         class="btn w-full"
         :disabled="action.busy.value"
       >
-        {{ action.busy.value ? 'Memproses…' : 'Login' }}
+        {{ action.busy.value ? 'Memproses…' : 'Masuk' }}
         <AppIcon name="arrow" />
       </button>
     </form>

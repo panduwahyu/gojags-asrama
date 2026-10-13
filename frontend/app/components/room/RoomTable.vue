@@ -16,7 +16,10 @@ const columns = [
 </script>
 
 <template>
-  <section class="card mt-6 p-4 md:p-6">
+  <section
+    aria-label="Daftar kamar"
+    class="card mt-6 p-4 md:p-6"
+  >
     <DataTable
       :table="table"
       :columns="columns"

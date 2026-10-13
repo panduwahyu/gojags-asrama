@@ -27,6 +27,15 @@ export function errorMessage(error: unknown): string {
   }
 
   const status = statusOf(error)
+  if (
+    status === 422
+    && isRecord(error)
+    && isRecord(error.data)
+    && typeof error.data.message === 'string'
+    && error.data.message.length > 0
+  ) {
+    return error.data.message
+  }
   if (status === 401) {
     return 'Sesi telah berakhir. Silakan login kembali.'
   }

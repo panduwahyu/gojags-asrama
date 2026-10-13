@@ -7,7 +7,10 @@ defineProps<{
 </script>
 
 <template>
-  <section class="card mt-6 p-6">
+  <section
+    aria-label="Riwayat check-in dan check-out"
+    class="card mt-6 p-6"
+  >
     <h2 class="font-semibold">
       Riwayat check-in dan check-out
     </h2>

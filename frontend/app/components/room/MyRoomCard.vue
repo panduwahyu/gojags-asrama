@@ -30,6 +30,7 @@ async function transition(kind: 'check-in' | 'check-out') {
 
     <section
       v-if="room"
+      aria-label="Kamar saya"
       class="card mt-6 p-6"
     >
       <h2 class="text-xl font-semibold">
@@ -73,6 +74,7 @@ async function transition(kind: 'check-in' | 'check-out') {
 
     <section
       v-else-if="loaded"
+      aria-label="Kamar saya"
       class="card mt-6 p-6"
     >
       <h2 class="font-semibold">
