@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\LaundryStatus;
+use App\Enums\Role;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class LaundryOrder extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'items',
+        'set_count',
+    ];
+
+    protected $casts = [
+        'status' => LaundryStatus::class,
+        'cost' => 'decimal:2',
+    ];
+
+    protected $attributes = [
+        'status' => LaundryStatus::Pending,
+    ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function scopeVisibleTo(Builder $query, User $user): void
+    {
+        if ($user->role === Role::Resident) {
+            $query->whereBelongsTo($user);
+        }
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === LaundryStatus::Pending;
+    }
+}
