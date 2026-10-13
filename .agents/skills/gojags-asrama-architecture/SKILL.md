@@ -23,6 +23,7 @@ Baca sesuai kebutuhan — tidak perlu semuanya sekaligus.
 | `references/frontend.md` | Menulis apa pun di `frontend/` |
 | `references/domain.md` | Menyentuh logika fitur — berisi aturan bisnis dan teks pesan yang wajib bertahan |
 | `references/schema.md` | Menulis migrasi, model, factory, atau Resource |
+| `references/testing.md` | Menulis atau menjalankan tes apa pun (PHPUnit, Vitest, Playwright tiruan, Playwright E2E) |
 | `references/migration-map.md` | Memindahkan kode lama: peta nama lama → baru dan daftar yang dihapus |
 
 ## Keputusan yang sudah diambil
@@ -64,7 +65,9 @@ database/
   migrations/         satu migrasi "create" per tabel, tanpa data
   factories/          satu factory per model
   seeders/            RoomSeeder (78 kamar), AccountSeeder (akun demo), DatabaseSeeder
+tests/Unit/           logika murni (RoomStatusTest)
 tests/Feature/        satu berkas per fitur: LeavePermitTest, RoomAllocationTest, …
+.env.e2e              lingkungan Laravel khusus E2E (basis data berakhiran _e2e)
 
 frontend/
   server/routes/api/[...path].ts     proxy ke Laravel
@@ -80,7 +83,13 @@ frontend/
     types/            satu berkas per fitur + api.ts (Paginated<T>, ApiMessage)
     utils/            datetime.ts, currency.ts, errors.ts
     middleware/       auth.global.ts
-  tests/browser/      satu spec Playwright per fitur
+  playwright.config.ts / playwright.e2e.config.ts / vitest.config.ts
+  scripts/            smoke.mjs, reset-e2e-db.mjs
+  tests/
+    unit/             Vitest untuk utils/
+    browser/          Playwright dengan API ditiru — satu spec per fitur
+    e2e/              Playwright menembus Laravel — satu spec per alur utama
+    support/          shared.ts, fixtures.ts, mock-api.ts, samples.ts
 ```
 
 Sebuah fitur selalu berbentuk sama. Untuk "izin keluar":
@@ -141,10 +150,11 @@ selalu bisa dijalankan dan tiap langkah bisa ditinjau sendiri.
 2. **Per fitur**, urutan yang disarankan: kamar & alokasi → check-in/out → izin keluar → keluhan →
    laundry → catering → dashboard. Untuk tiap fitur:
    1. Baca bagian fitur itu di `domain.md` dan kode lamanya; catat setiap aturan dan pesan.
-   2. Tulis ulang feature test-nya terhadap kontrak baru (lihat `backend.md` § Test). Tes lama adalah
+   2. Tulis ulang feature test-nya terhadap kontrak baru (lihat `testing.md`). Tes lama adalah
       daftar perilaku yang harus tetap tercakup.
    3. Tulis backend sampai tes hijau, lalu `vendor/bin/pint`.
-   4. Tulis frontend, lalu `npm run typecheck`, lalu sesuaikan spec Playwright fitur itu.
+   4. Tulis frontend beserta spec Playwright tiruannya, lalu `npm run typecheck` dan
+      `npm run test:browser`. Tambah spec E2E bila fitur punya alur lintas peran.
 3. **Pembersihan**: hapus semua yang ada di daftar "dihapus" pada `migration-map.md`, lalu perbarui
    `CLAUDE.md`, `AGENTS.md`, dan `dbdiagram.txt` agar menggambarkan struktur baru.
 
@@ -163,10 +173,11 @@ Sebelum menyatakan satu fitur selesai, periksa:
 
 - [ ] Setiap aturan dan pesan fitur itu di `domain.md` tercakup oleh tes.
 - [ ] `composer test` hijau; `vendor/bin/pint --test` bersih.
-- [ ] `npm run typecheck` bersih; spec Playwright fitur itu lulus (butuh backend + Nuxt berjalan).
+- [ ] `npm run typecheck`, `npm run test:unit`, dan `npm run test:browser` bersih.
+- [ ] `npm run test:e2e` lulus (butuh PHP + basis data `*_e2e`; lihat `testing.md` § 7).
+- [ ] Daftar "Minimum per fitur" di `testing.md` § 10 terpenuhi.
 - [ ] Tidak ada `DB::table`, `expectsJson`, `view(`, atau `validate(` inline di kode baru.
 - [ ] Tidak ada string status mentah di luar enum, dan tidak ada baris >120 karakter.
 - [ ] Kode lama fitur tersebut sudah dihapus, bukan dibiarkan berdampingan.
 
-Laporkan dengan jujur bila ada langkah yang tidak bisa dijalankan (mis. server tidak menyala untuk
-Playwright) — jangan menyatakan lulus tanpa menjalankannya.
+Laporkan dengan jujur bila ada langkah yang tidak bisa dijalankan (mis. basis data E2E tidak tersedia) — jangan menyatakan lulus tanpa menjalankannya.

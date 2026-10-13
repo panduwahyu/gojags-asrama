@@ -14,6 +14,7 @@ Sumber kebenaran struktur ada di `.claude/skills/gojags-asrama-architecture/`:
 | DOMAIN | `.claude/skills/gojags-asrama-architecture/references/domain.md` |
 | SCHEMA | `.claude/skills/gojags-asrama-architecture/references/schema.md` |
 | MAP | `.claude/skills/gojags-asrama-architecture/references/migration-map.md` |
+| TESTING | `.claude/skills/gojags-asrama-architecture/references/testing.md` |
 
 Bila dokumen ini dan berkas di atas berbeda, **berkas di atas yang benar**; laporkan perbedaannya.
 
@@ -37,12 +38,16 @@ Bila dokumen ini dan berkas di atas berbeda, **berkas di atas yang benar**; lapo
 Perintah verifikasi yang dipakai berulang:
 
 ```powershell
-composer test                 # semua feature test (SQLite in-memory)
+composer test                 # semua tes PHPUnit (basis data sesuai phpunit.xml)
 php artisan test tests/Feature/NamaTest.php
 vendor/bin/pint               # format PHP
 vendor/bin/pint --test        # cek format tanpa mengubah
 cd frontend; npm run typecheck
+cd frontend; npm run test:unit      # Vitest (tersedia setelah C2)
+cd frontend; npm run test:browser   # Playwright tiruan (tersedia setelah C6)
 ```
+
+Baca TESTING § 1–3 sekali sebelum menulis tes pertama, supaya tahu aturan mana diuji di lapis mana.
 
 ---
 
@@ -493,7 +498,13 @@ Semua path di fase C–D relatif terhadap `frontend/`.
   halaman dan coba kembali."; 429 → "Terlalu banyak percobaan. Coba kembali sebentar lagi."; lainnya →
   "Tidak dapat menghubungi server. Pastikan backend Laravel berjalan."
 
-**Selesai bila:** semua berkas ada dan tidak ada `any` di dalamnya.
+**Tes unit** (baca TESTING § 4): tambahkan devDependency `vitest`, buat `vitest.config.ts` (alias `~` →
+`./app`, `include: ['tests/unit/**/*.test.ts']`), skrip `"test:unit": "vitest run"`, dan tiga berkas
+`tests/unit/datetime.test.ts`, `currency.test.ts`, `errors.test.ts` dengan kasus yang disebut di TESTING § 4.
+Hapus `tests/browser/*.spec.ts` lama (ditulis ulang mulai C6; isinya tetap bisa dibaca lewat
+`git show main:frontend/tests/browser/<nama>.spec.ts`).
+
+**Selesai bila:** `npm run test:unit` hijau dan tidak ada `any` di `app/types` maupun `app/utils`.
 
 ## C3 · Composable
 
@@ -564,6 +575,28 @@ komponen `.btn-text`, `.section-title`; pertahankan `.card`, `.btn`, `.muted`, `
 dan `npm run dev` berjalan, login `admin@example.id` / `admin123` berhasil dan menampilkan kerangka
 halaman dengan sidebar.
 
+## C6 · Infrastruktur Playwright tiruan
+
+**Baca dulu:** TESTING § 5, § 6, § 8.
+
+**Buat:**
+- `tests/support/shared.ts` dan `playwright.config.ts` persis TESTING § 5–6 (menggantikan konfigurasi lama).
+- `tests/support/samples.ts` — satu pabrik data per tipe di `app/types` (`sampleRoom`, `sampleResident`,
+  `sampleLeavePermit`, `sampleComplaint`, `sampleLaundryOrder`, `sampleCateringMenu`, `sampleStay`), tiap
+  pabrik menerima `Partial<T>` untuk menimpa nilai bawaan dan memberi `id` unik.
+- `tests/support/mock-api.ts` — `CSRF_TOKEN`, `mockSession`, `mockTable` (TESTING § 6) dan
+  `mockEmptyTables(page)` yang menjawab kosong untuk semua endpoint GET di BACKEND § 1.
+- `tests/support/fixtures.ts` persis TESTING § 6.
+- Spec lintas-fitur `tests/browser/roles.spec.ts`, `login.spec.ts`, `csrf.spec.ts`, `theme.spec.ts` dengan
+  isi sesuai tabel "Spec yang wajib ada" di TESTING § 6. (`data-table.spec.ts` dan `polling.spec.ts` butuh
+  satu tabel sungguhan, jadi ditulis di tugas D1.)
+
+**Ubah:** `package.json` → skrip `test:browser`, `test:e2e`, `test:smoke` seperti TESTING § 9;
+`.gitignore` → tambahkan `playwright-report/`, `test-results/`, `tests/e2e/.auth/`.
+
+**Selesai bila:** `npm run typecheck` bersih dan `npm run test:browser` hijau (Nuxt dinyalakan otomatis;
+Laravel tidak diperlukan).
+
 ---
 
 # Fase D — Fitur frontend
@@ -573,8 +606,13 @@ Pola tiap fitur: tiga komponen di `app/components/<fitur>/` — **Section** (mem
 FRONTEND § 7. Aturan format: FRONTEND § 9. Untuk teks antarmuka, salin dari komponen lama
 (`git show main:frontend/app/components/<Nama>.vue`) — teksnya tidak berubah, strukturnya yang berubah.
 
-Tiap tugas **selesai bila** `npm run typecheck` bersih, tidak ada baris >120 karakter di berkas yang
-dibuat, dan alurnya berjalan di browser dengan akun seed.
+Tiap tugas D juga menulis **spec Playwright tiruan** fiturnya di `tests/browser/<fitur>.spec.ts` (aturan:
+TESTING § 6 dan § 8; isi minimum: TESTING § 10): tampilan per peran, tiap aksi tulis (periksa isi
+permintaan, pesan sukses, tabel diperbarui), dan satu kasus pesan error dari server. Skenario spec lama
+bisa dijadikan daftar periksa. Jangan mengulang uji perilaku tabel — itu milik `data-table.spec.ts`.
+
+Tiap tugas **selesai bila** `npm run typecheck` bersih, `npm run test:browser` hijau, dan tidak ada baris
+>120 karakter di berkas yang dibuat.
 
 ## D1 · Izin keluar
 
@@ -584,6 +622,9 @@ dibuat, dan alurnya berjalan di browser dengan akun seed.
 FRONTEND § 7), dan `LeavePermitTable.vue` — kolom: Nama user (admin saja), Waktu keluar, Waktu kembali,
 Alasan, Status, Aksi. Aksi: admin → "Setujui" / "Tolak" untuk yang `pending`; penghuni → "Edit" untuk
 yang `pending`; selain itu teks "Sudah diproses". Waktu memakai `formatWib`.
+
+**Spec:** `leave-permit.spec.ts`, ditambah `data-table.spec.ts` dan `polling.spec.ts` (ditunda dari C6)
+yang memakai tabel izin keluar sebagai contoh.
 
 ## D2 · Keluhan
 
@@ -657,18 +698,28 @@ rating, Jumlah penilai; penghuni: + Rating saya dan kolom "Beri rating"), `Cater
 
 # Fase E — Penutup
 
-## E1 · Tes browser
+## E1 · Tes E2E dan smoke
 
-**Baca dulu:** FRONTEND § 11; spec lama di `frontend/tests/browser/*.spec.ts` sebagai daftar skenario.
+**Baca dulu:** TESTING § 7 (seluruhnya, terutama "Basis data khusus dan pengaman") dan § 8.
 
-**Ubah** tiap spec agar cocok dengan URL halaman baru (`/admin/rooms`, `/resident/room`, …) dan teks/label
-yang ada sekarang. Pilih elemen dengan `getByRole` / `getByLabel`. Hapus skenario yang menguji hal yang
-sudah dihapus (form admin "tambah laundry" generik, halaman Blade). Perbarui `scripts/smoke.mjs` ke
-endpoint `/api/...` yang baru.
+**Buat:**
+- `.env.e2e` di root repo: salinan `.env.example` dengan `APP_ENV=e2e`, `APP_KEY` hasil
+  `php artisan key:generate --show`, dan `DB_DATABASE=gojags_asrama_e2e`. Tambahkan `.env.e2e` ke
+  `.gitignore`, dan buat `.env.e2e.example` (tanpa `APP_KEY`) untuk di-commit.
+- `frontend/scripts/reset-e2e-db.mjs` persis TESTING § 7. **Jangan** menjalankan `migrate:fresh` dengan
+  cara lain, dan jangan pernah terhadap basis data yang namanya tidak berakhiran `_e2e`.
+- `frontend/playwright.e2e.config.ts` persis TESTING § 7.
+- `frontend/tests/e2e/accounts.ts` (`ACCOUNTS`, `STATE`), `global.setup.ts`, dan enam spec pada tabel
+  "Isolasi antar-spec" di TESTING § 7: `auth`, `leave-permit`, `complaint`, `laundry`, `catering`, `rooms`.
 
-**Selesai bila:** dengan backend ter-seed (`php artisan migrate:fresh --seed`) dan Nuxt berjalan,
-`npm run test:smoke` dan `npm run test:browser` lulus. Bila server tidak bisa dijalankan di lingkungan
-Anda, **laporkan bahwa tes ini belum dijalankan** — jangan menyatakan lulus.
+**Ubah:** `frontend/scripts/smoke.mjs` → endpoint `/api/...` dan URL halaman yang baru.
+
+Basis data `gojags_asrama_e2e` harus sudah ada di MySQL. Bila belum ada, **berhenti dan minta pemilik
+repo membuatnya** — jangan membuat atau menghapus basis data sendiri.
+
+**Selesai bila:** `npm run test:e2e` hijau, dan `npm run test:smoke` hijau terhadap server yang berjalan.
+Bila PHP/MySQL tidak tersedia di lingkungan Anda, **laporkan bahwa tes ini belum dijalankan** — jangan
+menyatakan lulus.
 
 ## E2 · Dokumentasi
 
@@ -691,7 +742,7 @@ Jalankan semuanya dan laporkan keluaran apa adanya:
 ```powershell
 composer test
 vendor/bin/pint --test
-cd frontend; npm run typecheck; npm run build
+cd frontend; npm run typecheck; npm run test:unit; npm run test:browser; npm run test:e2e; npm run build
 ```
 
 Lalu periksa (semua harus kosong):
@@ -699,6 +750,7 @@ Lalu periksa (semua harus kosong):
 ```powershell
 grep -rnE "DB::table\(|expectsJson\(|\bview\(" app routes
 grep -rnE "setInterval|setTimeout" frontend/app --include=*.vue
+grep -rnE "waitForTimeout|test\.only" frontend/tests
 grep -rnE "/backend/api|useAsrama|useTableSearch" frontend/app frontend/server frontend/scripts frontend/tests
 grep -rnE "'(Diajukan|Disetujui|Ditolak|Selesai|Kosong|Terisi|Penuh)'" app --include=*.php --exclude-dir=Enums
 awk 'length > 120 {print FILENAME": "FNR}' $(git ls-files 'app/*.php' 'routes/*.php' 'frontend/app/*.vue' 'frontend/app/*.ts')

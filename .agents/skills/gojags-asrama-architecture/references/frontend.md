@@ -501,7 +501,7 @@ halaman terlihat dari indentasinya dan membuat *diff* mudah ditinjau:
 
 ## 11. Test
 
-Satu spec Playwright per fitur di `frontend/tests/browser/`, login dengan akun seed, memilih elemen lewat
-peran dan label (`getByRole`, `getByLabel`) — bukan kelas CSS. Backend dan Nuxt harus sudah berjalan
-dengan basis data ter-seed; `workers: 1` karena tes berbagi satu basis data. Jalankan
-`npm run typecheck` sebelum Playwright.
+Lihat `testing.md`. Ringkasnya: fungsi di `utils/` diuji Vitest (`tests/unit/`); perilaku antarmuka diuji
+Playwright dengan API ditiru (`tests/browser/`, satu spec per fitur, tanpa Laravel); beberapa alur utama
+diuji Playwright E2E terhadap Laravel dan basis data khusus (`tests/e2e/`). Elemen dipilih lewat peran
+dan label (`getByRole`, `getByLabel`), bukan kelas CSS.

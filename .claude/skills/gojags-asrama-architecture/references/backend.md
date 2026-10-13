@@ -539,7 +539,8 @@ return [
 
 ## 13. Test
 
-Feature test PHPUnit per fitur, terhadap SQLite in-memory dengan `RefreshDatabase`. Tes memanggil API
+Strategi lengkap ada di `testing.md`. Feature test PHPUnit per fitur, terhadap basis data di `phpunit.xml`
+dengan `RefreshDatabase`. Tes memanggil API
 JSON (`getJson`, `postJson`, …) dan memeriksa status, pesan, serta isi basis data. Nama method
 menggambarkan perilaku.
 

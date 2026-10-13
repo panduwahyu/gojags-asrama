@@ -124,8 +124,11 @@ C. Keterbacaan (aturan di SKILL.md § "Aturan keterbacaan")
    - Tidak ada `any` atau `as` yang tidak perlu di TypeScript.
 
 D. Verifikasi
-   - Jalankan: `composer test`, `vendor/bin/pint --test`, `cd frontend; npm run typecheck; npm run build`.
-   - Bila backend dan Nuxt bisa dinyalakan: `npm run test:smoke` dan `npm run test:browser`.
+   - Jalankan: `composer test`, `vendor/bin/pint --test`, lalu di `frontend/`: `npm run typecheck`,
+     `npm run test:unit`, `npm run test:browser`, `npm run build`.
+   - Bila PHP dan basis data `*_e2e` tersedia: `npm run test:e2e`.
+   - Cocokkan tes dengan references/testing.md: tiap fitur memenuhi § 10, spec wajib di § 6 ada semua,
+     tidak ada pelanggaran aturan § 8, dan tidak ada aturan yang diuji berulang di beberapa lapis.
    - Tempelkan ringkasan keluaran tiap perintah apa adanya. Untuk perintah yang tidak bisa dijalankan,
      tulis "TIDAK DIJALANKAN" beserta sebabnya.
 
