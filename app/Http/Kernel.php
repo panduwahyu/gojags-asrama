@@ -16,6 +16,7 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance;
 use Illuminate\Foundation\Http\Middleware\ValidatePostSize;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Http\Middleware\HandleCors;
+use Illuminate\Http\Middleware\SetCacheHeaders;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Routing\Middleware\ValidateSignature;
@@ -51,6 +52,7 @@ class Kernel extends HttpKernel
     protected $middlewareAliases = [
         'role' => RequireRole::class,
         'auth' => Authenticate::class,
+        'cache.headers' => SetCacheHeaders::class,
         'throttle' => ThrottleRequests::class,
         'bindings' => SubstituteBindings::class,
         'can' => Authorize::class,
