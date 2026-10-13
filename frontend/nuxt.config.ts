@@ -5,6 +5,7 @@ export default defineNuxtConfig({
   ssr: false,
   devtools: { enabled: false },
   css: ['~/assets/css/main.css'],
+  components: [{ path: '~/components', pathPrefix: false }],
   vite: { plugins: [tailwindcss()] },
   // Bundle Nuxt's renderer so its build-time modules resolve in Windows production builds.
   nitro: { externals: { inline: ['nuxt'] } },
