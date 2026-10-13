@@ -1,0 +1,3 @@
+<template>
+  <LaundrySection admin />
+</template>
