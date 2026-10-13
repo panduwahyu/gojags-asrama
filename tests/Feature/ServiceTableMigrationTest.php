@@ -42,6 +42,13 @@ class ServiceTableMigrationTest extends TestCase
             $this->assertDatabaseHas($record->category, $data);
             $this->assertFalse(Schema::hasColumn($record->category, 'category'));
         }
+
+        DB::table('laundry')->delete();
+        DB::table('catering')->delete();
+        $current->up();
+        $checkIns->up();
+        $laundrySubmissions->up();
+        $cateringMenus->up();
     }
 
     public function test_rollback_keeps_records_with_identical_ids_in_different_tables(): void
@@ -71,6 +78,13 @@ class ServiceTableMigrationTest extends TestCase
         foreach (['kamar', 'laundry', 'catering'] as $table) {
             $this->assertDatabaseCount($table, 1);
         }
+
+        DB::table('laundry')->delete();
+        DB::table('catering')->delete();
+        $current->up();
+        $checkIns->up();
+        $laundrySubmissions->up();
+        $cateringMenus->up();
     }
 
     public function test_unknown_legacy_category_stops_migration_without_removing_data(): void
@@ -101,5 +115,9 @@ class ServiceTableMigrationTest extends TestCase
         // Restore the expected schema before the next RefreshDatabase test.
         DB::table('asrama_records')->delete();
         $migration->up();
+        $current->up();
+        $checkIns->up();
+        $laundrySubmissions->up();
+        $cateringMenus->up();
     }
 }

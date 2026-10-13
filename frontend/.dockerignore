@@ -1,0 +1,10 @@
+.git
+.nuxt
+.output
+node_modules
+dist
+test-results
+playwright-report
+*.log
+.DS_Store
+Thumbs.db
