@@ -13,7 +13,7 @@ export default defineNuxtConfig({
     head: {
       htmlAttrs: { lang: 'id' },
       title: 'Gojags Asrama',
-      script: [{ src: '/js/asrama-theme.js', tagPosition: 'head' }],
+      script: [{ src: '/js/theme.js', tagPosition: 'head' }],
       link: [
         { rel: 'icon', href: '/images/gojags.png' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap' },
