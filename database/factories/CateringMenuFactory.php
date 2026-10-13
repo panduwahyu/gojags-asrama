@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Enums\CateringStatus;
+use App\Models\CateringMenu;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\CateringMenu>
+ * @extends Factory<CateringMenu>
  */
 class CateringMenuFactory extends Factory
 {

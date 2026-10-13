@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Models\CateringMenu;
+use App\Models\CateringRating;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\CateringRating>
+ * @extends Factory<CateringRating>
  */
 class CateringRatingFactory extends Factory
 {

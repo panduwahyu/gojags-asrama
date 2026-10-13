@@ -1,5 +1,10 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\RouteServiceProvider;
+use Illuminate\Support\Facades\Facade;
+use Illuminate\Support\ServiceProvider;
+
 return [
 
     /*
@@ -99,12 +104,12 @@ return [
 
     'key' => env('APP_KEY'),
 
-    'providers' => Illuminate\Support\ServiceProvider::defaultProviders()->merge([
-        App\Providers\AppServiceProvider::class,
-        App\Providers\RouteServiceProvider::class,
+    'providers' => ServiceProvider::defaultProviders()->merge([
+        AppServiceProvider::class,
+        RouteServiceProvider::class,
     ])->toArray(),
 
-    'aliases' => Illuminate\Support\Facades\Facade::defaultAliases()->toArray(),
+    'aliases' => Facade::defaultAliases()->toArray(),
 
     /*
     |--------------------------------------------------------------------------

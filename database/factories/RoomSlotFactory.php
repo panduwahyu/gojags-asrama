@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\Room;
+use App\Models\RoomSlot;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\RoomSlot>
+ * @extends Factory<RoomSlot>
  */
 class RoomSlotFactory extends Factory
 {

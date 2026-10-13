@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Enums\LaundryStatus;
+use App\Models\LaundryOrder;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\LaundryOrder>
+ * @extends Factory<LaundryOrder>
  */
 class LaundryOrderFactory extends Factory
 {

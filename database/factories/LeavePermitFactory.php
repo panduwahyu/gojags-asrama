@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Enums\PermitStatus;
+use App\Models\LeavePermit;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\LeavePermit>
+ * @extends Factory<LeavePermit>
  */
 class LeavePermitFactory extends Factory
 {

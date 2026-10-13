@@ -1,8 +1,8 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 
 Artisan::command('inspire', function () {
@@ -24,6 +24,7 @@ Artisan::command('asrama:admin', function () {
         foreach ($validator->errors()->all() as $error) {
             $this->error($error);
         }
+
         return 1;
     }
     User::create($data + ['role' => 'admin']);
