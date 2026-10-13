@@ -59,4 +59,16 @@ class Kernel extends HttpKernel
         'signed' => ValidateSignature::class,
         'verified' => EnsureEmailIsVerified::class,
     ];
+
+    protected $middlewarePriority = [
+        EncryptCookies::class,
+        StartSession::class,
+        ShareErrorsFromSession::class,
+        Authenticate::class,
+        ThrottleRequests::class,
+        VerifyCsrfToken::class,
+        RequireRole::class,
+        SubstituteBindings::class,
+        Authorize::class,
+    ];
 }
