@@ -1,212 +1,209 @@
 // ============================================================
 // Gojags Asrama — Database Schema (DBML untuk https://dbdiagram.io)
-// Stack : Laravel 10 + SQLite
+// Stack : Laravel 10 + MySQL
 // Cara pakai: buka https://dbdiagram.io/d → New Diagram → paste isi file ini.
 // ============================================================
 
 Project gojags_asrama {
-  database_type: 'SQLite'
-  Note: 'Aplikasi Asrama (Laravel 10). Tabel inti: users, kamar, kamar_slots, kamar_stays, laundry, catering, catering_ratings, izin_keluar, keluhan_asrama.'
+  database_type: 'MySQL'
+  Note: 'Aplikasi Manajemen Asrama GOJAGS (Laravel 10 API + Nuxt 4 SPA). Semua waktu disimpan dalam UTC.'
 }
 
 // ---------- Autentikasi & Akun ----------
 
 Table users {
   id bigint [pk, increment]
-  name varchar
-  email varchar [unique, not null]
+  name varchar(255) [not null]
+  email varchar(255) [unique, not null]
   email_verified_at timestamp [null]
-  password varchar
-  remember_token varchar [null]
-  role varchar [not null, default: 'user', note: 'user | admin']
-  angkatan varchar(100) [null, note: 'Profil untuk alokasi kamar']
-  gender varchar(20) [null, note: 'Laki-laki | Perempuan']
-  agama varchar(50) [null]
+  password varchar(255) [not null]
+  remember_token varchar(100) [null]
+  role varchar(20) [not null, default: 'resident', note: 'enum Role: admin | resident']
+  cohort varchar(100) [null, note: 'angkatan; disimpan ternormalisasi (lowercase, spasi dirapikan)']
+  gender varchar(10) [null, note: 'enum Gender: male | female']
+  religion varchar(50) [null, note: 'agama; disimpan ternormalisasi']
   created_at timestamp [null]
   updated_at timestamp [null]
 }
 
 Table password_reset_tokens {
-  email varchar [pk]
-  token varchar
+  email varchar(255) [pk]
+  token varchar(255) [not null]
   created_at timestamp [null]
 }
 
 Table sessions {
-  id varchar [pk]
+  id varchar(255) [pk]
   user_id bigint [null, note: 'index saja, tanpa FK constraint']
   ip_address varchar(45) [null]
   user_agent text [null]
-  payload text
-  last_activity integer [note: 'index']
+  payload longtext [not null]
+  last_activity integer [not null, note: 'index']
 }
 
 // ---------- Antrian & Cache (bawaan Laravel) ----------
 
 Table cache {
-  key varchar [pk]
-  value text
-  expiration integer [note: 'index']
+  key varchar(255) [pk]
+  value mediumtext [not null]
+  expiration integer [not null, note: 'index']
 }
 
 Table cache_locks {
-  key varchar [pk]
-  owner varchar
-  expiration integer [note: 'index']
+  key varchar(255) [pk]
+  owner varchar(255) [not null]
+  expiration integer [not null, note: 'index']
 }
 
 Table jobs {
   id bigint [pk, increment]
-  queue varchar [note: 'index']
-  payload text
-  attempts tinyint
+  queue varchar(255) [not null, note: 'index']
+  payload longtext [not null]
+  attempts tinyint [not null]
   reserved_at integer [null]
-  available_at integer
-  created_at integer
+  available_at integer [not null]
+  created_at integer [not null]
 }
 
 Table job_batches {
-  id varchar [pk]
-  name varchar
-  total_jobs integer
-  pending_jobs integer
-  failed_jobs integer
-  failed_job_ids text
-  options text [null]
+  id varchar(255) [pk]
+  name varchar(255) [not null]
+  total_jobs integer [not null]
+  pending_jobs integer [not null]
+  failed_jobs integer [not null]
+  failed_job_ids longtext [not null]
+  options mediumtext [null]
   cancelled_at integer [null]
-  created_at integer
+  created_at integer [not null]
   finished_at integer [null]
 }
 
 Table failed_jobs {
   id bigint [pk, increment]
-  uuid varchar [unique]
-  connection text
-  queue text
-  payload text
-  exception text
-  failed_at timestamp [default: `CURRENT_TIMESTAMP`]
+  uuid varchar(255) [unique, not null]
+  connection text [not null]
+  queue text [not null]
+  payload longtext [not null]
+  exception longtext [not null]
+  failed_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
 }
 
-// ---------- Kamar ----------
+// ---------- Kamar & Hunian ----------
 
-Table kamar {
+Table rooms {
   id bigint [pk, increment]
-  name varchar [note: 'Nomor kamar, mis. 501']
-  status varchar [note: 'Kosong | Assigned | Terisi | Penuh']
-  lantai tinyint [default: 3, note: '3, 4, atau 5']
-  date date
+  number varchar(10) [unique, not null, note: '301 … 526']
+  floor tinyint [not null, note: 'index; 3, 4, atau 5']
   created_at timestamp [null]
   updated_at timestamp [null]
 }
 
-Table kamar_slots {
+Table room_slots {
   id bigint [pk, increment]
-  kamar_id bigint [not null, ref: > kamar.id, note: 'cascade on delete']
-  nomor tinyint [note: 'Slot 1 atau 2 (max 2 penghuni/kamar)']
-  user_id bigint [null, unique, ref: > users.id, note: 'null on delete']
+  room_id bigint [not null, ref: > rooms.id, note: 'cascade on delete']
+  position tinyint [not null, note: '1 atau 2']
+  user_id bigint [null, unique, ref: > users.id, note: 'null on delete; satu user maksimal satu slot']
   checked_in_at timestamp [null]
   created_at timestamp [null]
   updated_at timestamp [null]
 
   indexes {
-    (kamar_id, nomor) [unique]
+    (room_id, position) [unique]
   }
 }
 
-Table kamar_stays {
+Table stays {
   id bigint [pk, increment]
   user_id bigint [null, ref: > users.id, note: 'null on delete']
-  kamar_id bigint [null, ref: > kamar.id, note: 'null on delete']
-  user_name varchar [note: 'snapshot nama user']
-  kamar_name varchar [note: 'snapshot nomor kamar']
-  lantai tinyint
-  checked_in_at timestamp
+  room_id bigint [null, ref: > rooms.id, note: 'null on delete']
+  user_name varchar(255) [not null, note: 'salinan saat check-in']
+  room_number varchar(10) [not null, note: 'salinan saat check-in']
+  floor tinyint [not null, note: 'salinan saat check-in']
+  checked_in_at timestamp [not null]
   checked_out_at timestamp [null]
   created_at timestamp [null]
   updated_at timestamp [null]
 
   indexes {
-    (user_id, checked_out_at) [name: 'kamar_stays_user_id_checked_out_at_index']
+    (user_id, checked_out_at)
   }
 }
 
 // ---------- Layanan: Laundry ----------
 
-Table laundry {
+Table laundry_orders {
   id bigint [pk, increment]
-  name varchar [note: 'snapshot nama pemesan']
-  detail varchar [note: 'deskripsi pakaian']
-  status varchar [note: 'Diajukan | Selesai']
-  date date
-  user_id bigint [null, ref: > users.id, note: 'null on delete']
-  jumlah_stel integer [null]
-  biaya decimal(12,2) [null, note: 'wajib saat status Selesai']
+  user_id bigint [not null, ref: > users.id, note: 'cascade on delete']
+  items varchar(255) [not null, note: 'deskripsi pakaian/barang']
+  set_count integer [not null, note: 'jumlah stel']
+  status varchar(20) [not null, default: 'pending', note: 'enum LaundryStatus: pending | done']
+  cost decimal(12,2) [null, note: 'wajib saat status = done']
   created_at timestamp [null]
   updated_at timestamp [null]
+
+  indexes {
+    (user_id, status)
+  }
 }
 
 // ---------- Layanan: Catering ----------
 
-Table catering {
+Table catering_menus {
   id bigint [pk, increment]
-  name varchar [note: 'mis. "Menu 3"']
-  detail varchar [note: 'snapshot penyedia']
-  status varchar [note: 'Terjadwal | Disiapkan | Selesai']
-  date date
-  menu integer [null]
-  penyedia varchar(255) [null]
-  waktu_catering datetime [null, note: 'disimpan dalam UTC']
+  menu_number integer [not null, note: 'ditampilkan sebagai "Menu N"']
+  provider varchar(255) [not null, note: 'penyedia']
+  served_at datetime [not null, note: 'waktu catering dalam UTC']
+  status varchar(20) [not null, default: 'scheduled', note: 'enum CateringStatus: scheduled | preparing | done']
   created_at timestamp [null]
   updated_at timestamp [null]
 }
 
 Table catering_ratings {
   id bigint [pk, increment]
-  catering_id bigint [not null, ref: > catering.id, note: 'cascade on delete']
+  catering_menu_id bigint [not null, ref: > catering_menus.id, note: 'cascade on delete']
   user_id bigint [not null, ref: > users.id, note: 'cascade on delete']
-  rating tinyint [note: '1..5']
+  rating tinyint [not null, note: '1..5']
   created_at timestamp [null]
   updated_at timestamp [null]
 
   indexes {
-    (catering_id, user_id) [unique]
+    (catering_menu_id, user_id) [unique]
   }
 }
 
 // ---------- Layanan: Izin Keluar ----------
 
-Table izin_keluar {
+Table leave_permits {
   id bigint [pk, increment]
   user_id bigint [not null, ref: > users.id, note: 'cascade on delete']
-  waktu_keluar datetime
-  waktu_kembali datetime [note: 'harus setelah waktu_keluar']
-  alasan text
-  status varchar(20) [default: 'Diajukan', note: 'Diajukan | Disetujui | Ditolak']
+  leaves_at datetime [not null]
+  returns_at datetime [not null, note: 'returns_at > leaves_at']
+  reason text [not null]
+  status varchar(20) [not null, default: 'pending', note: 'enum PermitStatus: pending | approved | rejected']
   reviewed_by bigint [null, ref: > users.id, note: 'admin; null on delete']
   reviewed_at timestamp [null]
   created_at timestamp [null]
   updated_at timestamp [null]
 
   indexes {
-    (user_id, status) [name: 'izin_keluar_user_id_status_index']
+    (user_id, status)
   }
 }
 
 // ---------- Layanan: Keluhan Asrama ----------
 
-Table keluhan_asrama {
+Table complaints {
   id bigint [pk, increment]
   user_id bigint [not null, ref: > users.id, note: 'cascade on delete']
-  judul varchar(150)
-  isi text
-  status varchar(20) [default: 'Diajukan', note: 'Diajukan | Resolved']
+  title varchar(150) [not null]
+  body text [not null]
+  status varchar(20) [not null, default: 'pending', note: 'enum ComplaintStatus: pending | resolved']
   resolved_by bigint [null, ref: > users.id, note: 'admin; null on delete']
   resolved_at timestamp [null]
   created_at timestamp [null]
   updated_at timestamp [null]
 
   indexes {
-    (user_id, status) [name: 'keluhan_asrama_user_id_status_index']
+    (user_id, status)
   }
 }
