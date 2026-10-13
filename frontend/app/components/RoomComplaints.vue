@@ -59,8 +59,8 @@ onBeforeUnmount(() => { clearTimeout(debounce); clearInterval(poll) })
   <section aria-label="Keluhan asrama" class="card mt-6 p-4 md:p-6">
     <h2 class="text-xl font-semibold">Keluhan asrama</h2>
     <p class="muted mt-2 text-sm">{{ admin ? 'Tinjau keluhan penghuni dan tandai Resolved setelah ditangani.' : 'Sampaikan keluhan terkait asrama, lalu pantau status penanganannya di bawah.' }}</p>
-    <p v-if="error || loadError" role="alert" class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-300">{{ error || 'Data keluhan tidak dapat dimuat.' }} <button v-if="loadError" class="underline" @click="refresh()">Coba lagi</button></p>
-    <p v-if="success" role="status" class="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-700 dark:bg-green-950/50 dark:text-green-300">{{ success }}</p>
+    <FeedbackNotice :message="loadError ? 'Data tidak dapat dimuat. Coba lagi atau muat ulang halaman.' : ''" /><button v-if="loadError" class="muted mb-4 underline" @click="refresh()">Coba lagi</button>
+
     <form v-if="!admin" class="mt-5 space-y-4" @submit.prevent="submit">
       <label>Judul keluhan<input v-model="form.judul" maxlength="150" required :disabled="busy"></label>
       <label>Isi keluhan<textarea v-model="form.isi" maxlength="2000" rows="4" required :disabled="busy" placeholder="Jelaskan keluhan dan lokasi yang perlu ditangani." class="rounded-lg border border-slate-200 bg-white p-3 outline-none focus:border-orange-400 dark:border-slate-700 dark:bg-slate-800" /></label>

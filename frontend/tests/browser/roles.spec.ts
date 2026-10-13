@@ -5,6 +5,8 @@ async function login(page: Page, email: string, password: string) {
   await page.getByLabel('Email', { exact: true }).fill(email)
   await page.getByLabel('Kata sandi', { exact: true }).fill(password)
   await page.getByRole('button', { name: 'Login', exact: true }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByRole('dialog').getByRole('button', { name: 'OK', exact: true }).click()
 }
 
 test('landing page is login without sidebar or footer and protected pages redirect guests', async ({ page }) => {
@@ -33,6 +35,8 @@ test('admin has management access, cannot open user dashboard, and can logout', 
   await expect(page.getByRole('button', { name: 'Alokasikan kamar otomatis', exact: true })).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath('admin-kamar.png'), fullPage: true })
   await page.getByRole('button', { name: 'Logout', exact: true }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByRole('dialog').getByRole('button', { name: 'OK', exact: true }).click()
   await expect(page).toHaveURL(/\/login$/)
   expect((await page.request.get('/backend/api/asrama/dashboard')).status()).toBe(401)
   await page.goto('/admin')
@@ -59,6 +63,8 @@ test('user only sees a personalized welcome and cannot access admin pages or dat
   await expect(page.getByText('Pandu Wahyu Aji', { exact: true })).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath('user-welcome.png'), fullPage: true })
   await page.getByRole('button', { name: 'Logout', exact: true }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByRole('dialog').getByRole('button', { name: 'OK', exact: true }).click()
   await expect(page).toHaveURL(/\/login$/)
   await expect(page.locator('footer')).toHaveCount(0)
 })

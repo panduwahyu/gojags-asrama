@@ -48,8 +48,8 @@ onBeforeUnmount(() => clearInterval(poll))
 <template>
   <div>
     <p class="overline">LAYANAN ASRAMA</p><h1 class="mb-6 mt-3 text-3xl font-bold">Catering</h1>
-    <p v-if="error || loadError" role="alert" class="mb-5 rounded-lg bg-red-50 p-4 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-300">{{ error || 'Data catering tidak dapat dimuat.' }} <button v-if="loadError" class="underline" @click="refresh()">Coba lagi</button></p>
-    <p v-if="success" role="status" class="mb-5 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-950/50 dark:text-green-300">{{ success }}</p>
+    <FeedbackNotice :message="loadError ? 'Data tidak dapat dimuat. Coba lagi atau muat ulang halaman.' : ''" /><button v-if="loadError" class="muted mb-4 underline" @click="refresh()">Coba lagi</button>
+
     <section v-if="admin" class="card mb-6 p-6"><h2 class="text-xl font-semibold">Tambah menu catering</h2>
       <form class="mt-5 space-y-4" @submit.prevent="create"><div class="grid gap-4 sm:grid-cols-3">
         <label>Nomor menu<input v-model="form.menu" type="number" min="1" max="10000" step="1" required :disabled="busy"></label>

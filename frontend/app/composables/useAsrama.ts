@@ -8,6 +8,7 @@ export type PageData = {
 }
 
 export function useAsrama() {
+  const feedback = useFeedback()
   const user = useState<User | null>('asrama-user', () => null)
   const csrf = useState<string>('asrama-csrf', () => '')
   async function session() {
@@ -16,13 +17,20 @@ export function useAsrama() {
     csrf.value = data.csrfToken
   }
   async function mutate(path: string, body: Record<string, unknown> = {}, method: 'POST' | 'PATCH' = 'POST') {
-    await session()
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null
     try {
-      return await $fetch(`/backend/api/asrama/${path}`, {
+      await session()
+      const response = await $fetch<{ message?: string }>(`/backend/api/asrama/${path}`, {
         method, body, headers: { 'X-CSRF-TOKEN': csrf.value, Accept: 'application/json' },
       })
-    } finally {
       await session()
+      const message = response.message || (path === 'login' ? 'Login berhasil.' : 'Perubahan berhasil disimpan.')
+      feedback.show(message, 'success', path === 'user/izin-keluar' && method === 'POST' ? 'Berhasil diajukan' : undefined, trigger)
+      return response
+    } catch (error) {
+      try { await session() } catch { /* Preserve the original action error if session refresh also fails. */ }
+      feedback.show(errorMessage(error), 'error', undefined, trigger)
+      throw error
     }
   }
   function errorMessage(error: unknown): string {

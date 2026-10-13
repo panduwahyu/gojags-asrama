@@ -32,6 +32,8 @@ test('user submits laundry, admin enters cost and completes it, user sees result
   await page.getByLabel('Pakaian / barang yang dilaundry', { exact: true }).fill('Kemeja dan celana')
   await page.getByLabel('Jumlah stel', { exact: true }).fill('3')
   await page.getByRole('button', { name: 'Ajukan laundry', exact: true }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByRole('dialog').getByRole('button', { name: 'OK', exact: true }).click()
   await expect(page.locator('tbody')).toContainText('Kemeja dan celana')
   await expect(page.locator('tbody')).toContainText('Diajukan')
   await expect(page.locator('tbody')).toContainText('Belum ditentukan')
@@ -43,9 +45,10 @@ test('user submits laundry, admin enters cost and completes it, user sees result
   expect(rows[0]!.status).toBe('Diajukan') // Browser blocks completion until cost is entered.
   await page.getByLabel('Biaya laundry User uji', { exact: true }).fill('25000')
   await page.getByRole('button', { name: 'Simpan', exact: true }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByRole('dialog').getByRole('button', { name: 'OK', exact: true }).click()
   await expect(page.locator('tbody')).toContainText('Selesai')
   await expect(page.locator('tbody')).toContainText('25.000')
-  await expect(page.getByRole('status').filter({ hasText: 'berhasil diperbarui' })).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath('admin-laundry.png'), fullPage: true })
   role = 'user'
   await page.goto('/user/laundry')

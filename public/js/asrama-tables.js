@@ -40,9 +40,12 @@
         const reset = replacement.querySelector('.search-form a');
         if (reset) form.append(reset);
         if (historyMode !== 'none') history[historyMode === 'replace' ? 'replaceState' : 'pushState']({}, '', url);
-        notice.textContent = 'Data diperbarui. ' + section.querySelector('[data-page-indicator]').getAttribute('aria-label');
+        notice.textContent = '';
       } catch (error) {
-        if (request === sequence && error.name !== 'AbortError') notice.textContent = 'Data gagal diperbarui. Coba cari atau pilih halaman kembali.';
+        if (request === sequence && error.name !== 'AbortError') {
+            notice.textContent = '';
+            window.AsramaFeedback?.show('Data gagal diperbarui. Coba cari atau pilih halaman kembali.', 'error');
+        }
       } finally {
         if (request === sequence) section.setAttribute('aria-busy', 'false');
       }

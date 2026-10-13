@@ -6,7 +6,7 @@ test('theme switch persists across reload and all Nuxt pages', async ({ page }, 
   await expect(toggle).toHaveAttribute('aria-pressed', 'false')
   const lightBackground = await page.locator('body').evaluate(el => getComputedStyle(el).backgroundColor)
   await toggle.click()
-  await expect(toggle).toHaveAttribute('aria-label', 'Aktifkan mode siang')
+  await expect(toggle).toHaveAttribute('aria-label', 'Aktifkan mode terang')
   await expect(page.locator('html')).toHaveClass(/dark/)
   expect(await page.locator('body').evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe(lightBackground)
   await page.reload()
@@ -26,15 +26,25 @@ test('theme switch persists across reload and all Nuxt pages', async ({ page }, 
 })
 
 test('device theme follows changes until the user chooses a theme', async ({ page }) => {
-  await page.emulateMedia({ colorScheme: 'dark' })
-  await page.goto('/')
-  await expect(page.locator('[data-theme-toggle]')).toHaveAttribute('aria-pressed', 'true')
-  await page.emulateMedia({ colorScheme: 'light' })
-  await expect(page.locator('[data-theme-toggle]')).toHaveAttribute('aria-pressed', 'false')
-  await page.locator('[data-theme-toggle]').click()
-  await page.emulateMedia({ colorScheme: 'dark' })
-  await page.emulateMedia({ colorScheme: 'light' })
-  await expect(page.locator('[data-theme-toggle]')).toHaveAttribute('aria-pressed', 'true')
+  for (const url of ['/login', process.env.LARAVEL_URL || 'http://127.0.0.1:8000/login']) {
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await page.goto(url)
+    await expect(page.locator('[data-theme-toggle]')).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.locator('[data-theme-toggle]')).toHaveAttribute('aria-label', 'Aktifkan mode terang')
+    expect(await page.evaluate(() => localStorage.getItem('gojags-asrama-theme'))).toBeNull()
+    await page.emulateMedia({ colorScheme: 'light' })
+    await expect(page.locator('[data-theme-toggle]')).toHaveAttribute('aria-pressed', 'false')
+    await expect(page.locator('[data-theme-toggle]')).toHaveAttribute('aria-label', 'Aktifkan mode gelap')
+    await page.reload()
+    await expect(page.locator('[data-theme-toggle]')).toHaveAttribute('aria-pressed', 'false')
+    expect(await page.evaluate(() => localStorage.getItem('gojags-asrama-theme'))).toBeNull()
+    await page.locator('[data-theme-toggle]').click()
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await page.emulateMedia({ colorScheme: 'light' })
+    await expect(page.locator('[data-theme-toggle]')).toHaveAttribute('aria-pressed', 'true')
+    await page.reload()
+    await expect(page.locator('[data-theme-toggle]')).toHaveAttribute('aria-pressed', 'true')
+  }
 })
 
 test('theme stays usable when browser storage is unavailable', async ({ page }) => {

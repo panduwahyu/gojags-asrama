@@ -48,8 +48,8 @@ async function allocate() {
 <template>
   <div>
     <div class="mb-7"><p class="overline">LAYANAN ASRAMA</p><h1 class="mt-3 text-3xl font-bold">Kamar</h1><p class="muted mt-2">{{ data?.counts.kamar ?? 78 }} kamar di lantai 3, 4, dan 5. Kapasitas dua penghuni per kamar.</p></div>
-    <p v-if="error || loadError" role="alert" class="mb-5 rounded-lg bg-red-50 p-4 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-300">{{ error || 'Data kamar tidak dapat dimuat.' }} <button v-if="loadError" class="underline" @click="refresh()">Coba lagi</button></p>
-    <p v-if="success" role="status" class="mb-5 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-950/50 dark:text-green-300">{{ success }}</p>
+    <FeedbackNotice :message="loadError ? 'Data tidak dapat dimuat. Coba lagi atau muat ulang halaman.' : ''" /><button v-if="loadError" class="muted mb-4 underline" @click="refresh()">Coba lagi</button>
+
     <section v-if="data?.monitoring" aria-label="Monitoring kamar" class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4"><div v-for="(total, state) in data.monitoring" :key="state" class="card p-5"><RoomStatusBadge :status="String(state)" /><p class="mt-4 text-3xl font-bold">{{ total }}</p><p class="muted mt-1 text-xs">kamar</p></div></section>
     <section class="card mb-6 p-5">
       <h2 class="font-semibold">Alokasi kamar otomatis</h2>

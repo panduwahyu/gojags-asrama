@@ -138,6 +138,8 @@
     </style>
 <link rel="stylesheet" href="{{ asset('css/asrama-tables.css') }}">
 <script src="{{ asset('js/asrama-tables.js') }}" defer></script>
+    <link rel="stylesheet" href="{{ asset('css/asrama-feedback.css') }}">
+    <script src="{{ asset('js/asrama-feedback.js') }}" defer></script>
 </head>
 <body>
     <div class="container py-4">
@@ -346,5 +348,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+@include('partials.feedback-modal')
 </body>
 </html>

@@ -5,6 +5,8 @@ async function login(page: Page, email: string, password: string) {
   await page.getByLabel('Email', { exact: true }).fill(email)
   await page.getByLabel('Kata sandi', { exact: true }).fill(password)
   await page.getByRole('button', { name: 'Login', exact: true }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByRole('dialog').getByRole('button', { name: 'OK', exact: true }).click()
 }
 
 test('user menus and check-in/out flow show WIB times and retain history', async ({ page }, testInfo) => {
@@ -32,10 +34,14 @@ test('user menus and check-in/out flow show WIB times and retain history', async
   await expect(page).toHaveURL(/\/user\/kamar$/)
   await expect(page.getByRole('button', { name: 'Check-out', exact: true })).toBeDisabled()
   await page.getByRole('button', { name: 'Check-in', exact: true }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByRole('dialog').getByRole('button', { name: 'OK', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Check-in', exact: true })).toBeDisabled()
   await expect(page.getByRole('button', { name: 'Check-out', exact: true })).toBeEnabled()
   await expect(page.locator('time').first()).toContainText('11.00.00 WIB')
   await page.getByRole('button', { name: 'Check-out', exact: true }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByRole('dialog').getByRole('button', { name: 'OK', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Belum ada alokasi kamar', exact: true })).toBeVisible()
   await expect(page.locator('time').last()).toContainText('12.00.00 WIB')
   await page.reload()

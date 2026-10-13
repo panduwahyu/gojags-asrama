@@ -11,8 +11,8 @@
         root.style.colorScheme = dark ? 'dark' : 'light';
         document.querySelectorAll('[data-theme-toggle]').forEach(function (button) {
             button.setAttribute('aria-pressed', String(dark));
-            button.setAttribute('aria-label', dark ? 'Aktifkan mode siang' : 'Aktifkan mode malam');
-            button.setAttribute('title', dark ? 'Aktifkan mode siang' : 'Aktifkan mode malam');
+            button.setAttribute('aria-label', dark ? 'Aktifkan mode terang' : 'Aktifkan mode gelap');
+            button.setAttribute('title', dark ? 'Aktifkan mode terang' : 'Aktifkan mode gelap');
         });
         window.dispatchEvent(new CustomEvent('asrama:themechange', { detail: { dark: dark } }));
     }

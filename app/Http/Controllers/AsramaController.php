@@ -130,7 +130,7 @@ class AsramaController extends Controller
             return response()->json(['user' => $request->user()->only('id', 'name', 'email', 'role')]);
         }
         $request->session()->forget('url.intended');
-        return redirect('/'.$request->user()->role);
+        return redirect('/'.$request->user()->role)->with('success', 'Login berhasil.');
     }
 
     public function logout(Request $request)
@@ -141,6 +141,6 @@ class AsramaController extends Controller
         if ($request->expectsJson()) {
             return response()->json(['message' => 'Berhasil keluar.']);
         }
-        return redirect('/login');
+        return redirect('/login')->with('success', 'Berhasil keluar.');
     }
 }

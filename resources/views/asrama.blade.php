@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="{{ asset('css/asrama-dark.css') }}">
 <link rel="stylesheet" href="{{ asset('css/asrama-tables.css') }}">
 <script src="{{ asset('js/asrama-tables.js') }}" defer></script>
+    <link rel="stylesheet" href="{{ asset('css/asrama-feedback.css') }}">
+    <script src="{{ asset('js/asrama-feedback.js') }}" defer></script>
 </head>
 <body>
 @php
@@ -41,11 +43,9 @@
     <div class="sidebar-bottom"><form method="POST" action="{{ url('/logout') }}">@csrf<button class="btn full"><svg><use href="#login"/></svg>Logout</button></form></div>
 </aside>
 <div class="shell">
-    <header class="topbar"><span>Gojags <b>Asrama</b></span><div class="topbar-actions"><span class="topbar-right"><i></i> Pusat Pendidikan dan Pelatihan BPS</span><button type="button" class="theme-toggle" data-theme-toggle aria-label="Aktifkan mode malam" aria-pressed="false"><span class="theme-moon" aria-hidden="true">☾</span><span class="theme-sun" aria-hidden="true">☀</span><span class="theme-moon">Mode malam</span><span class="theme-sun">Mode siang</span></button></div></header>
+    <header class="topbar"><span>Gojags <b>Asrama</b></span><div class="topbar-actions"><span class="topbar-right"><i></i> Pusat Pendidikan dan Pelatihan BPS</span><button type="button" class="theme-toggle" data-theme-toggle aria-label="Aktifkan mode gelap" aria-pressed="false"><span class="theme-moon" aria-hidden="true">☾</span><span class="theme-sun" aria-hidden="true">☀</span><span class="theme-moon">Mode gelap</span><span class="theme-sun">Mode terang</span></button></div></header>
     <main>
         <div class="breadcrumb">Asrama <span>›</span> {{ $page === 'user' ? 'Beranda' : ucfirst(str_replace('user-', '', $page)) }}</div>
-        @if(session('success'))<div class="notice" role="status">{{ session('success') }}</div>@endif
-        @if($errors->any())<div class="error" role="alert">@foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach</div>@endif
         @if($page === 'user')
             <section class="hero user-welcome"><div class="hero-copy"><span class="eyebrow">GOJAGS ASRAMA</span><h1>Selamat datang di<br>Gojags <em>Asrama.</em></h1><p class="welcome-name">{{ auth()->user()->name }}</p></div></section>
         @elseif($page === 'user-kamar')
@@ -94,5 +94,6 @@
     </main>
     <footer><div class="footer-grid"><div><a class="brand footer-brand" href="{{ url('/') }}"><img src="{{ asset('images/gojags.png') }}" alt="Logo Gojags"><span>Gojags Asrama</span></a><p>Sistem pengelolaan asrama terintegrasi.<br>Mendukung kenyamanan tinggal dan belajar<br>di Pusat Pendidikan dan Pelatihan BPS.</p></div><div><h4>Jelajahi</h4>@foreach($menus as $key => [$label, $icon])<a href="{{ url($key === 'beranda' ? '/' : '/'.$key) }}">{{ $label }}</a>@endforeach</div><div><h4>Gojags Asrama</h4><p>Pusat Pendidikan dan Pelatihan<br>Badan Pusat Statistik</p></div></div><div class="footer-bottom"><span>© {{ now()->year }} Gojags Asrama. Pusdiklat BPS.</span><span>Dibuat untuk kenyamanan bersama.</span></div></footer>
 </div>
+@include('partials.feedback-modal')
 </body>
 </html>

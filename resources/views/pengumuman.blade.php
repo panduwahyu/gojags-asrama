@@ -21,6 +21,8 @@
     </script>
 <link rel="stylesheet" href="{{ asset('css/asrama-tables.css') }}">
 <script src="{{ asset('js/asrama-tables.js') }}" defer></script>
+    <link rel="stylesheet" href="{{ asset('css/asrama-feedback.css') }}">
+    <script src="{{ asset('js/asrama-feedback.js') }}" defer></script>
 </head>
 
 <body class="bg-darkbg text-gray-100 min-h-screen flex">
@@ -428,7 +430,7 @@ function closeCheckoutAlert() {
 }
 
 function confirmCheckout() {
-    alert("Check-out berhasil!");
+    window.AsramaFeedback.show("Check-out berhasil!");
     closeCheckoutAlert();
 }
 
@@ -451,6 +453,7 @@ function sortKeluhan(type) {
 
 
 
+@include('partials.feedback-modal')
 </body>
 <div id="keluhanModal"
 class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50">

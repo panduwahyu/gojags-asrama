@@ -25,8 +25,8 @@ async function action(kind: 'check-in' | 'check-out') {
 <template>
   <div>
     <p class="overline">LAYANAN ASRAMA</p><h1 class="mb-6 mt-3 text-3xl font-bold">Kamar saya</h1>
-    <p v-if="error || loadError" role="alert" class="mb-5 rounded-lg bg-red-50 p-4 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-300">{{ error || 'Data kamar tidak dapat dimuat.' }} <button v-if="loadError" class="underline" @click="refresh()">Coba lagi</button></p>
-    <p v-if="success" role="status" class="mb-5 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-950/50 dark:text-green-300">{{ success }}</p>
+    <FeedbackNotice :message="loadError ? 'Data tidak dapat dimuat. Coba lagi atau muat ulang halaman.' : ''" /><button v-if="loadError" class="muted mb-4 underline" @click="refresh()">Coba lagi</button>
+
     <section v-if="data?.room" class="card p-6">
       <h2 class="text-xl font-semibold">Kamar {{ data.room.name }}</h2><p class="muted mt-2">Lantai {{ data.room.lantai }}</p>
       <p class="mt-4 text-sm">{{ data.room.checked_in_at ? 'Sudah check-in' : 'Assigned · Menunggu check-in' }}</p>

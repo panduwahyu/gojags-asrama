@@ -4,7 +4,7 @@ Antarmuka Laravel dengan logo Gojags, font Inter, dan palet oranye yang mengacu 
 
 Backend menggunakan **Laravel 10** (`composer.json` dan `composer.lock`). Frontend menggunakan Nuxt 4 (Vue 3) dan Tailwind CSS 4 di folder `frontend/`. Struktur bootstrap, HTTP/Console Kernel, middleware, route provider, dan pengujian telah disesuaikan untuk Laravel 10. Database dan API Asrama dipertahankan.
 
-Tombol **Mode malam / Mode siang** tersedia di bar atas Nuxt dan Blade. Palet malam mengikuti permukaan slate gelap dan aksen oranye Gojags Classroom. Kunjungan pertama mengikuti tema perangkat; pilihan manual disimpan dalam localStorage (`gojags-asrama-theme`) dan disinkronkan antar-tab pada origin yang sama. Tema diterapkan dari skrip head sebelum aplikasi dimuat. Sumber skrip tema di `public/js/asrama-theme.js` disalin ke `frontend/public/js/asrama-theme.js`; samakan kedua file jika perilaku tema diubah.
+Tombol **Mode gelap / Mode terang** tersedia di bar atas Nuxt dan Blade. Palet malam mengikuti permukaan slate gelap dan aksen oranye Gojags Classroom. Secara default tema mengikuti preferensi sistem dan berubah otomatis saat preferensi sistem berubah, sampai pengguna memilih tema secara manual; pilihan manual disimpan dalam localStorage (`gojags-asrama-theme`) dan disinkronkan antar-tab pada origin yang sama. Tema diterapkan dari skrip head sebelum aplikasi dimuat. Sumber skrip tema di `public/js/asrama-theme.js` disalin ke `frontend/public/js/asrama-theme.js`; samakan kedua file jika perilaku tema diubah.
 
 Laravel 10 telah melewati masa dukungan keamanan resmi sejak 4 Februari 2025; lihat [kebijakan dukungan Laravel](https://laravel.com/docs/10.x/releases#support-policy).
 
@@ -129,7 +129,7 @@ Check-in memerlukan alokasi aktif. Check-out memerlukan check-in aktif, mencatat
 
 Prioritas status kamar: tanpa penghuni = Kosong; jika ada penempatan yang belum check-in = Assigned; jika semua penghuni aktif sudah check-in, satu orang = Terisi dan dua orang = Penuh. Dengan demikian, setelah dua orang check-in, check-out satu orang menghasilkan Terisi dan check-out keduanya menghasilkan Kosong. Jika salah satu masih menunggu check-in, status tetap Assigned.
 
-Monitoring admin pada halaman Kamar menampilkan jumlah global empat status, terlepas dari pencarian dan pagination. Warna status dan kartu: Kosong hijau, Assigned biru cerah, Terisi kuning, Penuh merah, termasuk pada mode malam. Data admin diperbarui otomatis setiap 15 detik saat tab aktif; isian profil yang belum disimpan tetap dipertahankan. Nama penghuni juga menampilkan waktu check-in atau keterangan belum check-in.
+Monitoring admin pada halaman Kamar menampilkan jumlah global empat status, terlepas dari pencarian dan pagination. Warna status dan kartu: Kosong hijau, Assigned biru cerah, Terisi kuning, Penuh merah, termasuk pada mode gelap. Data admin diperbarui otomatis setiap 15 detik saat tab aktif; isian profil yang belum disimpan tetap dipertahankan. Nama penghuni juga menampilkan waktu check-in atau keterangan belum check-in.
 
 ## Izin keluar
 
@@ -168,6 +168,12 @@ Admin melihat seluruh keluhan di tabel halaman Kamar dan menekan **Tandai Resolv
 Migrasi `2026_10_09_000008_create_keluhan_asrama_table` membuat tabel `keluhan_asrama`. API user: `GET/POST /api/asrama/user/keluhan`. API admin: `GET /api/asrama/keluhan`, `PATCH /api/asrama/keluhan/{id}` dengan `status: Resolved`. Mutasi Blade memakai jalur tanpa `/api/asrama` dan kembali ke halaman Kamar. Semua endpoint menerapkan sesi, role, dan CSRF.
 
 Tabel keluhan mendukung pencarian, sorting kolom data, ukuran 10/50/100, navigasi awal/akhir, dan indikator halaman tanpa reload. Filter terpisah dari tabel kamar dan izin keluar. Nuxt memuat ulang data setiap 15 detik saat tab aktif tanpa menghapus isian form keluhan. Tabel contoh keluhan lama di halaman pengumuman tetap terpisah dari fitur ini.
+
+## Modal feedback
+
+Hasil aksi seluruh fitur ditampilkan dalam modal dengan tombol **OK**, termasuk login/logout, alokasi/profil kamar, check-in/check-out, izin keluar, laundry, catering/rating, dan keluhan. Pengajuan izin keluar menggunakan judul **Berhasil diajukan**. Pesan validasi atau kegagalan juga menggunakan modal; isian form yang gagal tetap tersedia untuk diperbaiki. Indikator pemuatan tabel tetap tampil saat data sedang dimuat.
+
+Nuxt menggunakan modal global `FeedbackModal` dan antrean `useFeedback`, sehingga pesan tetap tersedia setelah navigasi login/logout. Mutasi melalui `useAsrama` menampilkan hasil secara otomatis. Blade menampilkan flash session dan error validasi melalui partial `feedback-modal`, `asrama-feedback.js`, dan `asrama-feedback.css`. Pesan ditampilkan sebagai teks, bukan HTML. Modal mendukung mode terang/gelap, fokus awal pada OK, navigasi keyboard, Escape untuk menutup, serta pengembalian fokus setelah ditutup.
 
 ## Verifikasi
 

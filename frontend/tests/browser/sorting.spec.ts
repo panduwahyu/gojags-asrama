@@ -5,6 +5,8 @@ async function login(page: Page, blade = false) {
   await page.getByLabel('Email', { exact: true }).fill('admin@example.id')
   await page.getByLabel('Kata sandi', { exact: true }).fill('admin123')
   await page.getByRole('button', { name: 'Login', exact: true }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByRole('dialog').getByRole('button', { name: 'OK', exact: true }).click()
   await expect(page).toHaveURL(/\/admin$/)
 }
 

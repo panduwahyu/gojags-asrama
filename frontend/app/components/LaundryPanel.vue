@@ -46,8 +46,8 @@ onBeforeUnmount(() => clearInterval(poll))
 <template>
   <div>
     <p class="overline">LAYANAN ASRAMA</p><h1 class="mb-6 mt-3 text-3xl font-bold">Laundry</h1>
-    <p v-if="error || loadError" role="alert" class="mb-5 rounded-lg bg-red-50 p-4 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-300">{{ error || 'Data laundry tidak dapat dimuat.' }} <button v-if="loadError" class="underline" @click="refresh()">Coba lagi</button></p>
-    <p v-if="success" role="status" class="mb-5 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-950/50 dark:text-green-300">{{ success }}</p>
+    <FeedbackNotice :message="loadError ? 'Data tidak dapat dimuat. Coba lagi atau muat ulang halaman.' : ''" /><button v-if="loadError" class="muted mb-4 underline" @click="refresh()">Coba lagi</button>
+
     <section v-if="!admin" class="card mb-6 p-6"><h2 class="text-xl font-semibold">Ajukan laundry</h2><p class="muted mt-2 text-sm">Tuliskan pakaian atau barang yang akan dilaundry dan total jumlah stel.</p>
       <form class="mt-5 space-y-4" @submit.prevent="submit">
         <label>Pakaian / barang yang dilaundry<textarea v-model="form.detail" required maxlength="255" rows="3" :disabled="busy" placeholder="Contoh: kemeja, celana, dan seragam" class="rounded-lg border border-slate-200 bg-white p-3 outline-none focus:border-orange-400 dark:border-slate-700 dark:bg-slate-800" /></label>

@@ -9,14 +9,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/asrama.css') }}">
     <link rel="stylesheet" href="{{ asset('css/asrama-dark.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/asrama-feedback.css') }}">
+    <script src="{{ asset('js/asrama-feedback.js') }}" defer></script>
 </head>
 <body>
-    <div class="login-theme"><button type="button" class="theme-toggle" data-theme-toggle aria-label="Aktifkan mode malam" aria-pressed="false"><span class="theme-moon">☾ Mode malam</span><span class="theme-sun">☀ Mode siang</span></button></div>
+    <div class="login-theme"><button type="button" class="theme-toggle" data-theme-toggle aria-label="Aktifkan mode gelap" aria-pressed="false"><span class="theme-moon">☾ Mode gelap</span><span class="theme-sun">☀ Mode terang</span></button></div>
     <main class="login-landing">
         <section class="login-card card">
             <a class="brand" href="{{ url('/login') }}"><img src="{{ asset('images/gojags.png') }}" alt="Logo Gojags"><span>Gojags Asrama</span></a>
             <h1>Selamat datang kembali</h1><p>Masuk ke akun Anda untuk melanjutkan.</p>
-            @if($errors->any())<div class="error" role="alert">@foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach</div>@endif
             <form method="POST" action="{{ url('/login') }}">@csrf
                 <label>Email<input name="email" type="email" value="{{ old('email') }}" autocomplete="username" required placeholder="nama@example.id"></label>
                 <label for="login-password">Kata sandi</label>
@@ -41,5 +42,6 @@
             passwordToggle.querySelector('[data-password-slash]').toggleAttribute('hidden', !visible);
         });
     </script>
+@include('partials.feedback-modal')
 </body>
 </html>

@@ -2,6 +2,7 @@
 type Permission = { id: number; user_name: string; waktu_keluar: string; waktu_kembali: string; alasan: string; status: 'Diajukan' | 'Disetujui' | 'Ditolak' }
 type Form = { waktu_keluar: string; waktu_kembali: string; alasan: string }
 const props = defineProps<{ admin?: boolean }>()
+const feedback = useFeedback()
 const endpoint = props.admin ? 'izin-keluar' : 'user/izin-keluar'
 const { mutate, errorMessage } = useAsrama()
 const parameters = ref({ q: '', page: 1, per_page: 10, sort: 'id', direction: 'desc' })
@@ -43,6 +44,7 @@ watch(data, value => {
   if (current && current.status !== 'Diajukan') {
     reset()
     error.value = 'Pengajuan sudah diproses admin dan tidak dapat diedit.'
+    feedback.show(error.value, 'error')
   }
 })
 function edit(row: Permission) {
@@ -80,8 +82,8 @@ onBeforeUnmount(() => { clearTimeout(debounce); clearInterval(poll) })
   <section aria-label="Izin keluar" class="card mt-6 p-4 md:p-6">
     <h2 class="text-xl font-semibold">Izin keluar</h2>
     <p class="muted mt-2 text-sm">{{ admin ? 'Tinjau pengajuan izin keluar penghuni.' : 'Isi waktu keluar, waktu kembali, dan alasan. Pengajuan dapat diedit selama berstatus Diajukan.' }} Semua waktu menggunakan WIB.</p>
-    <p v-if="error || loadError" role="alert" class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-300">{{ error || 'Data izin keluar tidak dapat dimuat.' }} <button v-if="loadError" class="underline" @click="refresh()">Coba lagi</button></p>
-    <p v-if="success" role="status" class="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-700 dark:bg-green-950/50 dark:text-green-300">{{ success }}</p>
+    <FeedbackNotice :message="loadError ? 'Data tidak dapat dimuat. Coba lagi atau muat ulang halaman.' : ''" /><button v-if="loadError" class="muted mb-4 underline" @click="refresh()">Coba lagi</button>
+
     <form v-if="!admin" ref="formElement" class="mt-5 space-y-4" @submit.prevent="submit">
       <h3 class="font-semibold">{{ editing ? 'Edit pengajuan izin' : 'Ajukan izin keluar' }}</h3>
       <div class="grid gap-4 sm:grid-cols-2">
