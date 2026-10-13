@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\LeavePermitController;
 use App\Http\Controllers\MyRoomController;
 use App\Http\Controllers\ResidentController;
@@ -15,6 +16,7 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [SessionController::class, 'destroy']);
 
     Route::get('leave-permits', [LeavePermitController::class, 'index']);
+    Route::get('complaints', [ComplaintController::class, 'index']);
 
     Route::middleware('role:resident')->group(function () {
         Route::get('my-room', [MyRoomController::class, 'show']);
@@ -22,6 +24,7 @@ Route::middleware('auth')->group(function () {
         Route::post('my-room/check-out', [MyRoomController::class, 'checkOut']);
         Route::post('leave-permits', [LeavePermitController::class, 'store']);
         Route::patch('leave-permits/{permit}', [LeavePermitController::class, 'update']);
+        Route::post('complaints', [ComplaintController::class, 'store']);
     });
 
     Route::middleware('role:admin')->group(function () {
@@ -30,5 +33,6 @@ Route::middleware('auth')->group(function () {
         Route::get('residents', [ResidentController::class, 'index']);
         Route::patch('residents/{resident}', [ResidentController::class, 'update']);
         Route::patch('leave-permits/{permit}/review', [LeavePermitController::class, 'review']);
+        Route::patch('complaints/{complaint}/resolve', [ComplaintController::class, 'resolve']);
     });
 });
