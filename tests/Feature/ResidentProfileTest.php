@@ -1,0 +1,126 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\Gender;
+use App\Models\Room;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class ResidentProfileTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_admin_can_list_and_update_resident_profile_with_normalized_values(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $resident = User::factory()->resident()->create([
+            'cohort' => null,
+            'gender' => null,
+            'religion' => null,
+        ]);
+
+        $this->actingAs($admin)
+            ->patchJson("/api/residents/{$resident->id}", [
+                'cohort' => '  2026   A  ',
+                'gender' => Gender::Male->value,
+                'religion' => '  ISLAM  ',
+            ])
+            ->assertOk()
+            ->assertJsonPath('message', 'Profil alokasi berhasil disimpan.');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $resident->id,
+            'cohort' => '2026 a',
+            'gender' => Gender::Male->value,
+            'religion' => 'islam',
+        ]);
+
+        $this->actingAs($admin)
+            ->getJson('/api/residents')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $resident->id)
+            ->assertJsonPath('data.0.cohort', '2026 a')
+            ->assertJsonPath('data.0.religion', 'islam')
+            ->assertJsonPath('data.0.room_id', null);
+    }
+
+    public function test_whitespace_only_cohort_returns_422_with_domain_message(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $resident = User::factory()->resident()->create();
+
+        $this->actingAs($admin)
+            ->patchJson("/api/residents/{$resident->id}", [
+                'cohort' => '   ',
+                'gender' => Gender::Male->value,
+                'religion' => 'islam',
+            ])
+            ->assertUnprocessable()
+            ->assertSee('Angkatan dan agama wajib diisi.');
+    }
+
+    public function test_resident_who_already_has_a_slot_cannot_have_profile_updated(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $resident = User::factory()->resident()->profiled()->create();
+        $room = Room::factory()->create();
+        $room->slots()->create([
+            'position' => 1,
+            'user_id' => $resident->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->patchJson("/api/residents/{$resident->id}", [
+                'cohort' => '65',
+                'gender' => Gender::Female->value,
+                'religion' => 'kristen',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'profile' => 'Profil penghuni yang sudah dialokasikan tidak dapat diubah.',
+            ]);
+    }
+
+    public function test_updating_admin_user_returns_404(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $otherAdmin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->patchJson("/api/residents/{$otherAdmin->id}", [
+                'cohort' => '64',
+                'gender' => Gender::Male->value,
+                'religion' => 'islam',
+            ])
+            ->assertNotFound();
+    }
+
+    public function test_unknown_gender_returns_422(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $resident = User::factory()->resident()->create();
+
+        $this->actingAs($admin)
+            ->patchJson("/api/residents/{$resident->id}", [
+                'cohort' => '64',
+                'gender' => 'unknown',
+                'religion' => 'islam',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['gender']);
+    }
+
+    public function test_resident_and_guest_cannot_access_resident_endpoints(): void
+    {
+        $resident = User::factory()->resident()->create();
+
+        $this->getJson('/api/residents')->assertUnauthorized();
+
+        $this->actingAs($resident)
+            ->getJson('/api/residents')
+            ->assertForbidden();
+    }
+}

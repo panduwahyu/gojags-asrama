@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ResidentController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\SessionController;
 use Illuminate\Support\Facades\Route;
@@ -12,5 +13,7 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:admin')->group(function () {
         Route::get('rooms', [RoomController::class, 'index']);
+        Route::get('residents', [ResidentController::class, 'index']);
+        Route::patch('residents/{resident}', [ResidentController::class, 'update']);
     });
 });
