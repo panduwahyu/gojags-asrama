@@ -205,7 +205,7 @@ class AllocateRooms
             throw new RuntimeException('Slot kamar tidak konsisten.');
         }
 
-        $slot->update(['user_id' => $resident->id]);
+        $slot->update(['user_id' => $resident->id, 'checked_in_at' => null]);
         $occupants[$room->id][] = $resident;
     }
 

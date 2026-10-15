@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Gender;
+use App\Enums\RoomStatus;
 use App\Models\Room;
 use App\Models\RoomSlot;
 use App\Models\Stay;
@@ -207,5 +208,31 @@ class RoomAllocationTest extends TestCase
                 'message',
                 '1 user dialokasikan. 1 profil belum lengkap. 0 user menunggu kamar yang sesuai.'
             );
+    }
+
+    public function test_slot_does_not_inherit_stale_checked_in_at(): void
+    {
+        $this->seed(RoomSeeder::class);
+        $admin = User::factory()->admin()->create();
+        $resident = User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create();
+
+        $slot = RoomSlot::whereHas('room', fn ($q) => $q->where('floor', 5))
+            ->whereNull('user_id')
+            ->first();
+        $slot->update(['checked_in_at' => now()->subDay()]);
+
+        $this->actingAs($admin)
+            ->postJson('/api/rooms/allocate')
+            ->assertOk();
+
+        $slot->refresh();
+        $this->assertSame($resident->id, $slot->user_id);
+        $this->assertNull($slot->checked_in_at);
+        $room = Room::withOccupancy()->findOrFail($slot->room_id);
+        $this->assertSame(RoomStatus::Assigned, $room->status);
+
+        $this->actingAs($resident)
+            ->postJson('/api/my-room/check-in')
+            ->assertOk();
     }
 }
