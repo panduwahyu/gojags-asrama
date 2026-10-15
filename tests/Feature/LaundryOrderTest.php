@@ -105,4 +105,51 @@ class LaundryOrderTest extends TestCase
     {
         $this->getJson('/api/laundry-orders')->assertUnauthorized();
     }
+
+    public function test_laundry_orders_sort_by_status_follows_workflow_order(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $user = User::factory()->resident()->create();
+        $done = LaundryOrder::factory()->for($user)->create(['status' => LaundryStatus::Done, 'cost' => 10000]);
+        $pending = LaundryOrder::factory()->for($user)->create(['status' => LaundryStatus::Pending, 'cost' => null]);
+
+        $response = $this->actingAs($admin)
+            ->getJson('/api/laundry-orders?sort=status&direction=asc')
+            ->assertOk();
+
+        $this->assertSame([$pending->id, $done->id], array_column($response->json('data'), 'id'));
+    }
+
+    public function test_admin_can_reset_cost_to_null_and_omitted_cost_preserves_existing_cost(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $user = User::factory()->resident()->create();
+        $order = LaundryOrder::factory()->for($user)->create([
+            'status' => LaundryStatus::Done,
+            'cost' => 15000,
+        ]);
+
+        $this->actingAs($admin)
+            ->patchJson("/api/laundry-orders/{$order->id}", [
+                'status' => LaundryStatus::Pending->value,
+                'cost' => null,
+            ])
+            ->assertOk();
+
+        $order->refresh();
+        $this->assertSame(LaundryStatus::Pending, $order->status);
+        $this->assertNull($order->cost);
+
+        $order->forceFill(['cost' => 15000, 'status' => LaundryStatus::Done])->save();
+
+        $this->actingAs($admin)
+            ->patchJson("/api/laundry-orders/{$order->id}", [
+                'status' => LaundryStatus::Pending->value,
+            ])
+            ->assertOk();
+
+        $order->refresh();
+        $this->assertSame(LaundryStatus::Pending, $order->status);
+        $this->assertSame('15000.00', $order->cost);
+    }
 }

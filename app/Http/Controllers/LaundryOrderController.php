@@ -18,12 +18,12 @@ class LaundryOrderController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $orders = TableQuery::for(LaundryOrder::visibleTo($request->user())->with('user'))
-            ->search(['items', 'status', 'user.name'])
+            ->search(['items', 'user.name'])
+            ->status('status', LaundryStatus::class)
             ->sort([
                 'items',
                 'set_count',
                 'created_at',
-                'status',
                 'cost',
                 'user_name' => User::nameOf('laundry_orders'),
             ])
@@ -45,7 +45,7 @@ class LaundryOrderController extends Controller
 
         $order->forceFill([
             'status' => LaundryStatus::from($validated['status']),
-            'cost' => $validated['cost'] ?? $order->cost,
+            'cost' => array_key_exists('cost', $validated) ? $validated['cost'] : $order->cost,
         ])->save();
 
         return $this->message('Status berhasil diperbarui.');
