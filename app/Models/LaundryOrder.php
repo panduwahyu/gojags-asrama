@@ -3,15 +3,14 @@
 namespace App\Models;
 
 use App\Enums\LaundryStatus;
-use App\Enums\Role;
-use Illuminate\Database\Eloquent\Builder;
+use App\Models\Concerns\VisibleToOwner;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LaundryOrder extends Model
 {
-    use HasFactory;
+    use HasFactory, VisibleToOwner;
 
     protected $fillable = [
         'items',
@@ -30,13 +29,6 @@ class LaundryOrder extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function scopeVisibleTo(Builder $query, User $user): void
-    {
-        if ($user->role === Role::Resident) {
-            $query->whereBelongsTo($user);
-        }
     }
 
     public function isPending(): bool
