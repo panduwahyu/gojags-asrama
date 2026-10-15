@@ -182,4 +182,29 @@ class ResidentProfileTest extends TestCase
             'religion' => 'Islam',
         ]);
     }
+
+    public function test_cohort_and_religion_length_limits_are_enforced(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $resident = User::factory()->resident()->create();
+        $valid = ['cohort' => '64', 'gender' => Gender::Male->value, 'religion' => 'islam'];
+
+        $this->actingAs($admin)
+            ->patchJson("/api/residents/{$resident->id}", [...$valid, 'cohort' => str_repeat('a', 101)])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['cohort']);
+
+        $this->actingAs($admin)
+            ->patchJson("/api/residents/{$resident->id}", [...$valid, 'religion' => str_repeat('a', 51)])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['religion']);
+
+        $this->actingAs($admin)
+            ->patchJson("/api/residents/{$resident->id}", [
+                ...$valid,
+                'cohort' => str_repeat('a', 100),
+                'religion' => str_repeat('b', 50),
+            ])
+            ->assertOk();
+    }
 }

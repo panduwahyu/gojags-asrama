@@ -188,4 +188,16 @@ class LeavePermitTest extends TestCase
         $this->assertSame(PermitStatus::Pending, $permit->status);
         $this->assertNull($permit->reviewed_by);
     }
+
+    public function test_timestamps_are_returned_as_iso_8601_utc(): void
+    {
+        $resident = User::factory()->resident()->create();
+        LeavePermit::factory()->for($resident)->create();
+
+        $row = $this->actingAs($resident)->getJson('/api/leave-permits')->assertOk()->json('data.0');
+
+        foreach (['leaves_at', 'returns_at'] as $field) {
+            $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/', $row[$field], $field);
+        }
+    }
 }

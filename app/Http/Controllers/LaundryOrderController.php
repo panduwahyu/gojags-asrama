@@ -12,6 +12,7 @@ use App\Support\TableQuery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
 
 class LaundryOrderController extends Controller
 {
@@ -41,7 +42,12 @@ class LaundryOrderController extends Controller
 
     public function update(UpdateLaundryOrderRequest $request, LaundryOrder $order): JsonResponse
     {
-        $order->forceFill($request->validated())->save();
+        // Mengunci baris agar dua admin yang memperbarui bersamaan tidak saling menimpa.
+        DB::transaction(function () use ($request, $order) {
+            LaundryOrder::lockForUpdate()->findOrFail($order->id)
+                ->forceFill($request->validated())
+                ->save();
+        }, 3);
 
         return $this->message('Status berhasil diperbarui.');
     }

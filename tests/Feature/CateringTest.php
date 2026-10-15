@@ -393,4 +393,20 @@ class CateringTest extends TestCase
         $this->assertTrue($byNumber[$open->id]['can_rate']);
         $this->assertFalse($byNumber[$closed->id]['can_rate']);
     }
+
+    public function test_menus_sort_by_rating_average_and_rating_count(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $high = CateringMenu::factory()->create();
+        $low = CateringMenu::factory()->create();
+        CateringRating::factory()->create(['catering_menu_id' => $high->id, 'rating' => 5]);
+        CateringRating::factory()->create(['catering_menu_id' => $low->id, 'rating' => 1]);
+        CateringRating::factory()->create(['catering_menu_id' => $low->id, 'rating' => 2]);
+
+        $byAverage = $this->actingAs($admin)->getJson('/api/catering-menus?sort=rating_average&direction=desc');
+        $byCount = $this->actingAs($admin)->getJson('/api/catering-menus?sort=rating_count&direction=desc');
+
+        $this->assertSame([$high->id, $low->id], array_column($byAverage->json('data'), 'id'));
+        $this->assertSame([$low->id, $high->id], array_column($byCount->json('data'), 'id'));
+    }
 }

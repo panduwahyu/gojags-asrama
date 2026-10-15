@@ -171,4 +171,29 @@ class LaundryOrderTest extends TestCase
         $this->assertSame(LaundryStatus::Pending, $order->status);
         $this->assertNull($order->cost);
     }
+
+    public function test_cost_must_be_within_zero_and_ten_billion(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $order = LaundryOrder::factory()->create();
+
+        foreach ([-1, '10000000000'] as $invalid) {
+            $this->actingAs($admin)
+                ->patchJson("/api/laundry-orders/{$order->id}", [
+                    'status' => LaundryStatus::Done->value,
+                    'cost' => $invalid,
+                ])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors(['cost']);
+        }
+
+        $this->actingAs($admin)
+            ->patchJson("/api/laundry-orders/{$order->id}", [
+                'status' => LaundryStatus::Done->value,
+                'cost' => '9999999999.99',
+            ])
+            ->assertOk();
+
+        $this->assertSame('9999999999.99', $order->fresh()->cost);
+    }
 }

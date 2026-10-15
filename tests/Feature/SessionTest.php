@@ -130,4 +130,48 @@ class SessionTest extends TestCase
     {
         $this->postJson('/api/logout')->assertUnauthorized();
     }
+
+    public function test_login_regenerates_the_session_id(): void
+    {
+        User::factory()->resident()->create(['email' => 'regen@example.id', 'password' => 'secret123']);
+        $this->startSession();
+        $before = session()->getId();
+
+        $this->postJson('/api/login', ['email' => 'regen@example.id', 'password' => 'secret123'])->assertOk();
+
+        $this->assertNotSame($before, session()->getId());
+    }
+
+    public function test_logout_invalidates_the_session_and_rotates_the_csrf_token(): void
+    {
+        $user = User::factory()->resident()->create();
+        $this->actingAs($user)->startSession();
+        $oldToken = session()->token();
+
+        $this->postJson('/api/logout')->assertOk();
+
+        $this->assertGuest();
+        $this->assertNotSame($oldToken, session()->token());
+    }
+
+    public function test_api_responses_are_never_cached(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        foreach (['/api/dashboard', '/api/rooms', '/api/leave-permits'] as $url) {
+            $cacheControl = $this->actingAs($admin)->getJson($url)->headers->get('Cache-Control');
+            $this->assertStringContainsString('no-store', (string) $cacheControl, $url);
+        }
+    }
+
+    public function test_unknown_api_route_returns_generic_indonesian_message(): void
+    {
+        $this->getJson('/api/tidak-ada')
+            ->assertNotFound()
+            ->assertExactJson(['message' => 'Data atau halaman tidak ditemukan.']);
+
+        $this->postJson('/api/session')
+            ->assertStatus(405)
+            ->assertExactJson(['message' => 'Metode permintaan tidak didukung.']);
+    }
 }
