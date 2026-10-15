@@ -1,6 +1,6 @@
 import type { ApiMessage } from '~/types/api'
 
-type Method = 'POST' | 'PATCH' | 'PUT'
+type Method = 'POST' | 'PATCH' | 'PUT' | 'DELETE'
 
 export function useApi() {
   const { csrfToken, load } = useSession()
@@ -32,5 +32,6 @@ export function useApi() {
     post: <T = ApiMessage>(path: string, body?: object) => send<T>('POST', path, body),
     patch: <T = ApiMessage>(path: string, body?: object) => send<T>('PATCH', path, body),
     put: <T = ApiMessage>(path: string, body?: object) => send<T>('PUT', path, body),
+    delete: <T = ApiMessage>(path: string) => send<T>('DELETE', path),
   }
 }

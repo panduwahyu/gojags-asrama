@@ -28,7 +28,23 @@ function handleSubmit() {
 </script>
 
 <template>
+  <div v-if="!menu.can_rate" class="py-1">
+    <span
+      v-if="Date.parse(menu.served_at) > Date.now()"
+      class="muted whitespace-nowrap text-xs font-medium"
+    >
+      Belum dihidangkan
+    </span>
+    <span
+      v-else
+      class="muted whitespace-nowrap text-xs font-medium"
+    >
+      Penilaian ditutup
+    </span>
+  </div>
+
   <form
+    v-else
     class="space-y-3"
     @submit.prevent="handleSubmit"
   >
@@ -56,7 +72,7 @@ function handleSubmit() {
       </option>
     </select>
     <button
-      class="btn"
+      class="btn py-2! text-xs"
       :disabled="busy || !rating"
     >
       Simpan rating

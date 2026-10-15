@@ -107,9 +107,18 @@ export function sampleCateringMenu(overrides: Partial<CateringMenu> = {}): Cater
     preparing: 'Disiapkan',
     done: 'Selesai',
   }
+  const mealTime = overrides.meal_time ?? 'lunch'
+  const mealTimeLabels: Record<string, string> = {
+    breakfast: 'Pagi',
+    lunch: 'Siang',
+    dinner: 'Malam',
+  }
   return {
     id,
     menu_number: id,
+    dish_name: 'Ayam Goreng Lengkuas',
+    meal_time: mealTime,
+    meal_time_label: overrides.meal_time_label ?? mealTimeLabels[mealTime] ?? 'Siang',
     provider: 'Dapur Nusantara',
     served_at: '2026-10-13T05:00:00.000000Z',
     status,
@@ -117,6 +126,7 @@ export function sampleCateringMenu(overrides: Partial<CateringMenu> = {}): Cater
     rating_average: null,
     rating_count: 0,
     my_rating: null,
+    can_rate: true,
     ...overrides,
   }
 }
