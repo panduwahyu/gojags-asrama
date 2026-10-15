@@ -1,3 +1,3 @@
 <template>
-  <CateringSection admin />
+  <CateringSection />
 </template>

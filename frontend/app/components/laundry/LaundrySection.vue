@@ -1,19 +1,14 @@
 <script setup lang="ts">
 import type { LaundryOrder, LaundryOrderInput, LaundryStatusInput } from '~/types/laundry'
 
-const props = defineProps<{
-  admin?: boolean
-}>()
-
 const { isAdmin } = useSession()
-const adminMode = computed(() => props.admin ?? isAdmin.value)
 const api = useApi()
 const action = useAction()
 const table = useTable<LaundryOrder>('laundry-orders')
 const formKey = ref(0)
 
 usePolling(table.refresh, {
-  pausedWhen: () => adminMode.value || action.busy.value || table.loading.value,
+  pausedWhen: () => isAdmin.value || action.busy.value || table.loading.value,
 })
 
 async function submit(input: LaundryOrderInput) {
@@ -42,7 +37,7 @@ async function updateStatus(order: LaundryOrder, input: LaundryStatusInput) {
       :success="action.success.value"
     />
     <LaundryForm
-      v-if="!adminMode"
+      v-if="!isAdmin"
       :key="formKey"
       :busy="action.busy.value"
       @submit="submit"
@@ -50,7 +45,7 @@ async function updateStatus(order: LaundryOrder, input: LaundryStatusInput) {
     <LaundryTable
       :table="table"
       :busy="action.busy.value"
-      :admin="adminMode"
+      :admin="isAdmin"
       @save="updateStatus"
     />
   </div>

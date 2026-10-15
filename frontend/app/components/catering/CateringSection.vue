@@ -1,12 +1,7 @@
 <script setup lang="ts">
 import type { CateringMenu, CateringMenuInput } from '~/types/catering'
 
-const props = defineProps<{
-  admin?: boolean
-}>()
-
 const { isAdmin } = useSession()
-const adminMode = computed(() => props.admin ?? isAdmin.value)
 const api = useApi()
 const action = useAction()
 const table = useTable<CateringMenu>('catering-menus')
@@ -69,7 +64,7 @@ async function rate(menu: CateringMenu, rating: number) {
       :success="action.success.value"
     />
     <CateringMenuForm
-      v-if="adminMode"
+      v-if="isAdmin"
       :key="formKey"
       :menu="editingMenu"
       :busy="action.busy.value"
@@ -79,7 +74,7 @@ async function rate(menu: CateringMenu, rating: number) {
     <CateringTable
       :table="table"
       :busy="action.busy.value"
-      :admin="adminMode"
+      :admin="isAdmin"
       @rate="rate"
       @edit="startEdit"
       @delete="deleteMenu"
