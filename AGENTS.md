@@ -70,16 +70,16 @@ Panduan konteks arsitektur, alur kerja pengembangan, aturan domain, dan konvensi
 ```text
 ├── app/
 │   ├── Actions/               # Logika bisnis (AllocateRooms, CheckIn, CheckOut, UpdateResidentProfile)
-│   ├── Enums/                 # Backed enum domain (Role, Gender, RoomStatus, LaundryStatus, CateringStatus, PermitStatus, ComplaintStatus)
+│   ├── Enums/                 # Backed enum (Role, Gender, RoomStatus, LaundryStatus, CateringStatus, MealTime, ...)
 │   ├── Http/
 │   │   ├── Controllers/       # Controller REST tipis per sumber daya
 │   │   ├── Middleware/        # Authenticate, RequireRole ('role:admin' / 'role:resident')
 │   │   ├── Requests/          # FormRequest validasi dengan pesan Bahasa Indonesia
 │   │   └── Resources/         # JsonResource transformasi respons JSON
-│   ├── Models/                # Model Eloquent (User, Room, RoomSlot, Stay, LaundryOrder, CateringMenu, CateringRating, LeavePermit, Complaint)
+│   ├── Models/                # Model Eloquent (User, Room, RoomSlot, Stay, LaundryOrder, CateringMenu, ...)
 │   └── Support/               # DateFormat, TableQuery, RoomLocks
 ├── config/
-│   └── asrama.php             # Konfigurasi lantai, kapasitas kamar, dan opsi paginasi
+│   └── asrama.php             # Konfigurasi lantai, kapasitas kamar, opsi paginasi, display_timezone
 ├── database/
 │   ├── factories/             # Factory Eloquent untuk pengujian
 │   ├── migrations/            # Migrasi tabel inti & layanan asrama
@@ -87,11 +87,11 @@ Panduan konteks arsitektur, alur kerja pengembangan, aturan domain, dan konvensi
 ├── frontend/
 │   ├── app/
 │   │   ├── assets/css/        # Stylesheet global & konfigurasi Tailwind v4 (main.css)
-│   │   ├── components/        # Komponen terkelompok per domain (ui/, layout/, dashboard/, room/, leave-permit/, complaint/, laundry/, catering/)
+│   │   ├── components/        # Komponen terkelompok per domain (ui/, layout/, dashboard/, room/, ...)
 │   │   ├── composables/       # useSession.ts, useApi.ts, useAction.ts, usePolling.ts, useTable.ts
 │   │   ├── layouts/           # default.vue (sidebar/header/footer), auth.vue (halaman login)
-│   │   ├── middleware/        # auth.global.ts (proteksi rute & redirect sesuai role)
-│   │   ├── pages/             # Halaman admin (/admin, /admin/rooms, /admin/laundry, /admin/catering) & penghuni (/resident, /resident/room, /resident/laundry, /resident/catering)
+│   │   ├── middleware/        # auth.global.ts (proteksi rute via awalan URL tanpa definePageMeta)
+│   │   ├── pages/             # Halaman admin (/admin, /admin/rooms, ...) & penghuni (/resident, ...)
 │   │   ├── types/             # Definisi tipe data API & peta warna status
 │   │   └── utils/             # datetime.ts, currency.ts, errors.ts, navigation.ts
 │   ├── server/routes/api/     # Proxy Nitro ([...path].ts) ke endpoint /api/*
@@ -112,26 +112,32 @@ Panduan konteks arsitektur, alur kerja pengembangan, aturan domain, dan konvensi
 1. **Autentikasi & Otorisasi Peran (`role`)**:
    - Setiap user memiliki `role` bernilai `'admin'` (`Role::Admin`) atau `'resident'` (`Role::Resident`).
    - Middleware `role:admin` dan `role:resident` (`App\Http\Middleware\RequireRole`) membatasi akses endpoint.
-   - Rute JSON di `routes/api.php` berjalan di bawah grup middleware `web` agar mendapatkan proteksi session dan CSRF token.
+   - Endpoint login dibatasi oleh rate limiter `login` (maksimal 5 percobaan per menit per kombinasi email).
+   - Di frontend, `auth.global.ts` membatasi navigasi berdasarkan awalan URL (`/admin` dan `/resident`).
+   - Rute JSON di `routes/api.php` berjalan di bawah grup middleware `web` agar mendapatkan proteksi session dan CSRF.
 
 2. **Manajemen Kamar, Slot, & Alokasi Otomatis (`rooms`, `room_slots`, `stays`)**:
-   - Gedung asrama memiliki lantai `5`, `4`, dan `3` (`config('asrama.floors')`), dengan kapasitas maksimal **2 slot per kamar** (`position` 1 dan 2 di `room_slots`).
+   - Gedung asrama memiliki lantai `5`, `4`, dan `3` (`config('asrama.floors')`), kapasitas 2 slot per kamar.
    - Status kamar (`App\Enums\RoomStatus`, dihitung dari `room_slots` tanpa kolom status di tabel `rooms`):
      - `empty` (`Kosong`): 0 slot terisi.
-     - `assigned` (`Assigned`): Ada penghuni yang dialokasikan tetapi belum semua yang dialokasikan melakukan check-in (`assigned > checked_in`).
+     - `assigned` (`Assigned`): Ada penghuni dialokasikan tetapi belum semua check-in (`assigned > checked_in`).
      - `occupied` (`Terisi`): 1 penghuni sudah check-in dan tidak ada slot `assigned` yang tertunda.
      - `full` (`Penuh`): 2 penghuni sudah check-in.
-   - `AllocateRooms::handle()` mengalokasikan penghuni (`role = 'resident'`) yang memiliki profil lengkap (`cohort`, `gender`, `religion`), belum memiliki slot aktif, dan belum pernah check-out (`stays.checked_out_at IS NOT NULL`). Alokasi memprioritaskan lantai dari atas ke bawah (5 → 4 → 3) serta kecocokan `gender` dan `religion` dalam satu kamar.
-   - Untuk mencegah deadlock, transaksi alokasi, pembaruan profil, check-in, dan check-out selalu mengambil lock (`RoomLocks`) dengan urutan tabel: `rooms` → `users` → `room_slots`.
+   - `AllocateRooms::handle()` mengalokasikan penghuni (`role = 'resident'`) yang berprofil lengkap dan belum pernah
+     check-out. Alokasi memprioritaskan lantai dari atas ke bawah (5 → 4 → 3) serta kesamaan `gender` dan `religion`.
+   - Untuk mencegah deadlock, transaksi alokasi, pembaruan profil, check-in, dan check-out selalu mengambil lock
+     (`RoomLocks`) dengan urutan tabel: `rooms` → `users` → `room_slots`.
 
 3. **Layanan Laundry (`laundry_orders`)**:
-   - Penghuni mengajukan laundry (`status: 'pending'` / label `Diajukan`) dengan jumlah stel (`set_count`) dan deskripsi pakaian (`items`).
-   - Admin memproses dan menyelesaikan laundry (`status: 'done'` / label `Selesai`), di mana pengisian `cost` wajib saat status diubah menjadi `done`.
+   - Penghuni mengajukan laundry (`status: 'pending'` / label `Diajukan`) dengan jumlah stel dan deskripsi pakaian.
+   - Admin memproses dan menyelesaikan laundry (`status: 'done'` / label `Selesai`), dengan `cost` opsional.
 
 4. **Layanan Catering & Rating (`catering_menus`, `catering_ratings`)**:
-   - Status catering (`CateringStatus`): `scheduled` (`Terjadwal`) → `preparing` (`Disiapkan`) → `done` (`Selesai`).
-   - `served_at` disimpan dalam **UTC** di database.
-   - Penghuni memberikan rating (`1` s.d. `5`) per menu catering (`unique(catering_menu_id, user_id)`).
+   - Menyimpan `dish_name`, `meal_time` (`MealTime`: `breakfast`, `lunch`, `dinner`), `provider`, dan `served_at`.
+   - Admin dapat menambah, mengubah, dan menghapus menu catering (`DELETE /api/catering-menus/{menu}`).
+   - Penilaian menu oleh penghuni dibuka saat menu telah dihidangkan (`served_at`) dan ditutup pada pukul 23.59 WIB
+     pada tanggal menu dihidangkan (`ratingClosesAt()`).
+   - Rating (`1` s.d. `5`) disimpan dalam transaksi unik (`unique(catering_menu_id, user_id)`).
 
 5. **Izin Keluar (`leave_permits`)**:
    - Penghuni mengajukan izin dengan `leaves_at`, `returns_at` (wajib setelah `leaves_at`), dan `reason`.

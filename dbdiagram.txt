@@ -151,6 +151,8 @@ Table laundry_orders {
 Table catering_menus {
   id bigint [pk, increment]
   menu_number integer [not null, note: 'ditampilkan sebagai "Menu N"']
+  dish_name varchar(255) [not null, note: 'nama makanan']
+  meal_time varchar(20) [not null, note: 'enum MealTime: breakfast | lunch | dinner']
   provider varchar(255) [not null, note: 'penyedia']
   served_at datetime [not null, note: 'waktu catering dalam UTC']
   status varchar(20) [not null, default: 'scheduled', note: 'enum CateringStatus: scheduled | preparing | done']

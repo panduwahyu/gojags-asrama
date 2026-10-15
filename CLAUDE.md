@@ -38,15 +38,21 @@ Peramban hanya berkomunikasi dengan Nuxt. `frontend/server/routes/api/[...path].
 
 - Seluruh rute JSON berada di `routes/api.php` yang dimuat oleh `RouteServiceProvider` dengan prefiks `/api` dan grup middleware `['web', 'cache.headers:no_store']`, sehingga sesi dan CSRF tetap berbasis cookie pada satu origin.
 - `GET /api/session` mengembalikan `{ csrfToken, user }`.
-- Di frontend, `useSession()` menyimpan state sesi, `useApi()` mengirim permintaan `GET`/`POST`/`PATCH`/`PUT` ke `/api/...` dengan header `X-CSRF-TOKEN` otomatis (serta memuat ulang sesi dan mengulang sekali bila menerima `419`), dan `useAction()` mengelola state `busy`, `error`, dan `success`.
-- `frontend/app/middleware/auth.global.ts` memuat sesi pada tiap navigasi dan mengarahkan pengguna ke `/admin` atau `/resident` sesuai peran. Otorisasi sebenarnya ditegakkan di backend melalui middleware `auth` dan `role:admin` / `role:resident` (`App\Http\Middleware\RequireRole`).
+- `POST /api/login` dilindungi rate limiter `login` (maksimal 5 percobaan per menit per kombinasi email).
+- Di frontend, `useSession()` menyimpan state sesi, `useApi()` mengirim permintaan `GET`/`POST`/`PATCH`/`PUT`/`DELETE`
+  ke `/api/...` dengan header `X-CSRF-TOKEN` otomatis (serta memuat ulang sesi dan mengulang sekali bila menerima `419`),
+  dan `useAction()` mengelola state `busy`, `error`, dan `success`.
+- `frontend/app/middleware/auth.global.ts` membatasi akses berdasarkan awalan URL (`/admin` untuk admin,
+  `/resident` untuk resident) tanpa `definePageMeta`. Otorisasi sebenarnya ditegakkan di backend melalui
+  middleware `auth` dan `role:admin` / `role:resident` (`App\Http\Middleware\RequireRole`).
+  Admin dapat menghapus menu catering melalui `DELETE /api/catering-menus/{menu}`.
 
 ### Struktur Direktori
 
 ```text
 ├── app/
 │   ├── Actions/               # Logika bisnis lintas-model (AllocateRooms, CheckIn, CheckOut, UpdateResidentProfile)
-│   ├── Enums/                 # Backed enum domain (Role, Gender, RoomStatus, LaundryStatus, CateringStatus, PermitStatus, ComplaintStatus)
+│   ├── Enums/                 # Backed enum domain (Role, Gender, RoomStatus, LaundryStatus, CateringStatus, MealTime, PermitStatus, ComplaintStatus)
 │   ├── Http/
 │   │   ├── Controllers/       # Controller REST tipis (Session, Dashboard, Room, RoomAllocation, Resident, MyRoom, LeavePermit, Complaint, LaundryOrder, CateringMenu, CateringRating)
 │   │   ├── Middleware/        # Authenticate, RequireRole

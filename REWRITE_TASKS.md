@@ -233,7 +233,7 @@ dalam tes: `per_page=7` → 422; `sort=password` → 422; `q` lebih dari 100 kar
   - `destroy` → logout, `invalidate()`, `regenerateToken()`, kembalikan bentuk yang sama dengan `show`.
   - Ketiganya memakai satu method privat `payload(Request $request): JsonResponse`.
 
-**Rute** (di `routes/api.php`): `GET session`, `POST login` (`throttle:5,1`), `POST logout` (`auth`).
+**Rute** (di `routes/api.php`): `GET session`, `POST login` (`throttle:login`), `POST logout` (`auth`).
 
 **Buat tes** `tests/Feature/SessionTest.php`: sesi tamu → `user` null dan ada `csrfToken`; login benar →
 200 + `user.role`; login salah → 422 dengan pesan persis; percobaan ke-6 dalam semenit → 429; logout →
