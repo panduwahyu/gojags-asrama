@@ -44,7 +44,7 @@ const navBtnClass = [
       </label>
     </div>
 
-    <div class="flex items-center gap-1.5">
+    <div class="flex flex-wrap items-center gap-1.5">
       <button
         type="button"
         :class="navBtnClass"

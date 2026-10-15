@@ -51,7 +51,7 @@ onMounted(() => {
       />
       <path :d="sunPath" />
     </svg>
-    <span class="dark:hidden">Mode malam</span>
-    <span class="hidden dark:inline">Mode siang</span>
+    <span class="max-sm:sr-only dark:hidden">Mode malam</span>
+    <span class="hidden max-sm:sr-only dark:inline">Mode siang</span>
   </button>
 </template>

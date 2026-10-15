@@ -32,9 +32,9 @@ defineProps<{
       <p class="overline">
         {{ overline }}
       </p>
-      <h3 class="mt-2 text-sm font-bold text-slate-900 dark:text-white">
+      <h2 class="mt-2 text-sm font-bold text-slate-900 dark:text-white">
         {{ title }}
-      </h3>
+      </h2>
       <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
         {{ description }}
       </p>

@@ -11,10 +11,17 @@ const currentLabel = computed(() => {
 
 <template>
   <div>
+    <a
+      href="#konten"
+      class="sr-only z-60 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-indigo-700 shadow-lg
+        focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+    >
+      Lewati ke konten utama
+    </a>
     <AppSidebar @error="error = $event" />
     <div class="lg:ml-64">
       <AppHeader />
-      <main class="mx-auto max-w-7xl px-5 py-7 md:px-10">
+      <main id="konten" tabindex="-1" class="mx-auto max-w-7xl px-5 py-7 outline-hidden md:px-10">
         <nav aria-label="Breadcrumb" class="mb-6 flex items-center gap-2 text-xs text-slate-400">
           <NuxtLink
             :to="homePathFor(user?.role)"
