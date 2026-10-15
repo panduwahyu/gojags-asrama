@@ -219,6 +219,8 @@ Sistem Gojags Asrama mengusung pendekatan *Quality First* dengan cakupan penguji
 - Menjalankan typecheck: `npm --prefix frontend run typecheck`
 - Menjalankan format style: `./vendor/bin/pint --test`
 - Menjalankan pengujian E2E & tangkap screenshot: `npm --prefix frontend run test:e2e`
+- Menyusun buku panduan: `typst compile docs/PANDUAN_ADMIN.typ` (juga `PANDUAN_PENGHUNI.typ`, `PANDUAN_TEKNIS.typ`).
+  Gambar diambil dari `docs/screenshots/`, yang tidak disimpan di git; jalankan `test:e2e` terlebih dahulu pada klon baru.
 
 #tip[
   Semua berkas kode PHP, Vue, dan TypeScript mematuhi aturan batas panjang baris maksimal 120 karakter.
