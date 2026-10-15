@@ -1,6 +1,0 @@
-{
-  "eval_id": 0,
-  "eval_name": "rewrite-leave-permit-backend",
-  "prompt": "Rewrite backend fitur izin keluar ke struktur baru yang rapi dan readable. Sertakan migrasi, model, rute, controller, dan feature test-nya.",
-  "assertions": []
-}

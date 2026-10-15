@@ -1,6 +1,0 @@
-{
-  "eval_id": 2,
-  "eval_name": "add-announcement-feature",
-  "prompt": "Tambahkan fitur pengumuman asrama: admin bisa membuat pengumuman (judul + isi), penghuni bisa membaca daftar pengumuman terbaru. Backend dan frontend.",
-  "assertions": []
-}

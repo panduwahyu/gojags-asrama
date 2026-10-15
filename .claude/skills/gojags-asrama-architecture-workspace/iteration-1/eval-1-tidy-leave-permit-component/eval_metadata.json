@@ -1,6 +1,0 @@
-{
-  "eval_id": 1,
-  "eval_name": "tidy-leave-permit-component",
-  "prompt": "frontend/app/components/LeavePermissions.vue susah banget dibaca, tolong rapikan supaya readable. Perilakunya jangan berubah.",
-  "assertions": []
-}
