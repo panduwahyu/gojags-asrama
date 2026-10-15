@@ -18,6 +18,12 @@ export function useTable<T, R extends Paginated<T> = Paginated<T>>(path: string)
 
   let debounceTimer: ReturnType<typeof setTimeout> | undefined
 
+  function cancelDebounce() {
+    if (debounceTimer !== undefined) {
+      clearTimeout(debounceTimer)
+    }
+  }
+
   const perPage = computed({
     get: () => perPageSize.value,
     set: (value: number) => {
@@ -60,9 +66,7 @@ export function useTable<T, R extends Paginated<T> = Paginated<T>>(path: string)
   }
 
   function applySearch() {
-    if (debounceTimer !== undefined) {
-      clearTimeout(debounceTimer)
-    }
+    cancelDebounce()
     const unchanged = committedQuery.value === search.value && page.value === 1
     committedQuery.value = search.value
     page.value = 1
@@ -77,9 +81,7 @@ export function useTable<T, R extends Paginated<T> = Paginated<T>>(path: string)
   }
 
   function sortBy(column: string) {
-    if (debounceTimer !== undefined) {
-      clearTimeout(debounceTimer)
-    }
+    cancelDebounce()
     if (sort.value === column) {
       direction.value = direction.value === 'asc' ? 'desc' : 'asc'
     } else {
@@ -95,9 +97,7 @@ export function useTable<T, R extends Paginated<T> = Paginated<T>>(path: string)
   }
 
   watch(search, (value) => {
-    if (debounceTimer !== undefined) {
-      clearTimeout(debounceTimer)
-    }
+    cancelDebounce()
     debounceTimer = setTimeout(() => {
       committedQuery.value = value
       page.value = 1
@@ -108,11 +108,7 @@ export function useTable<T, R extends Paginated<T> = Paginated<T>>(path: string)
     refresh()
   }, { immediate: true })
 
-  onBeforeUnmount(() => {
-    if (debounceTimer !== undefined) {
-      clearTimeout(debounceTimer)
-    }
-  })
+  onBeforeUnmount(cancelDebounce)
 
   return {
     rows,

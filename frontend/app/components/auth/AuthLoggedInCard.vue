@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { SessionUser } from '~/types/session'
+import type { User } from '~/types/session'
 
 defineProps<{
-  user: SessionUser
+  user: User
 }>()
 </script>
 

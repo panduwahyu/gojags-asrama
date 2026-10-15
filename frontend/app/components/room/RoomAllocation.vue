@@ -13,13 +13,9 @@ const api = useApi()
 const action = useAction()
 const result = shallowRef<AllocationResult | null>(null)
 
-const incompleteNames = computed(() => {
-  return result.value ? result.value.incomplete.map(item => item.name).join(', ') : ''
-})
-
-const waitingNames = computed(() => {
-  return result.value ? result.value.waiting.map(item => item.name).join(', ') : ''
-})
+function namesOf(people: { name: string }[]): string {
+  return people.map(person => person.name).join(', ')
+}
 
 async function allocate() {
   result.value = null
@@ -66,14 +62,14 @@ async function allocate() {
         class="rounded-xl border border-amber-200 bg-amber-50/80 p-3.5 text-amber-900
           dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200"
       >
-        <p><b>Profil belum lengkap:</b> {{ incompleteNames }}</p>
+        <p><b>Profil belum lengkap:</b> {{ namesOf(result.incomplete) }}</p>
       </div>
       <div
         v-if="result.waiting.length"
         class="rounded-xl border border-sky-200 bg-sky-50/80 p-3.5 text-sky-900
           dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-200"
       >
-        <p><b>Menunggu kamar yang sesuai:</b> {{ waitingNames }}</p>
+        <p><b>Menunggu kamar yang sesuai:</b> {{ namesOf(result.waiting) }}</p>
       </div>
       <details
         v-if="result.allocated.length"

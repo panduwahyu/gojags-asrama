@@ -13,8 +13,9 @@ usePolling(table.refresh, {
 })
 
 async function saveMenu(input: CateringMenuInput) {
-  if (editingMenu.value) {
-    const updated = await action.run(() => api.patch(`catering-menus/${editingMenu.value!.id}`, input))
+  const menu = editingMenu.value
+  if (menu) {
+    const updated = await action.run(() => api.patch(`catering-menus/${menu.id}`, input))
     if (updated) {
       editingMenu.value = null
     }
@@ -30,9 +31,7 @@ async function saveMenu(input: CateringMenuInput) {
 
 function startEdit(menu: CateringMenu) {
   editingMenu.value = menu
-  if (typeof window !== 'undefined') {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function cancelEdit() {
