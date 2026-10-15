@@ -27,6 +27,7 @@ class RoleAccessTest extends TestCase
             ['PATCH', '/api/laundry-orders/1'],
             ['POST', '/api/catering-menus'],
             ['PATCH', '/api/catering-menus/1'],
+            ['DELETE', '/api/catering-menus/1'],
         ];
     }
 

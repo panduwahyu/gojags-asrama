@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CateringStatus;
+use App\Enums\MealTime;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +15,8 @@ class CateringMenu extends Model
 
     protected $fillable = [
         'menu_number',
+        'dish_name',
+        'meal_time',
         'provider',
         'served_at',
     ];
@@ -21,6 +24,7 @@ class CateringMenu extends Model
     protected $casts = [
         'served_at' => 'datetime',
         'status' => CateringStatus::class,
+        'meal_time' => MealTime::class,
     ];
 
     protected $attributes = [

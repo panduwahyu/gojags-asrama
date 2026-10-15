@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\CateringStatus;
+use App\Enums\MealTime;
 use App\Http\Requests\StoreCateringMenuRequest;
 use App\Http\Requests\UpdateCateringMenuRequest;
 use App\Http\Resources\CateringMenuResource;
@@ -17,9 +17,11 @@ class CateringMenuController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $menus = TableQuery::for(CateringMenu::withRatingsFor($request->user()))
-            ->search(['menu_number', 'provider'])
+            ->search(['menu_number', 'dish_name', 'provider'])
+            ->status('meal_time', MealTime::class)
             ->sort([
                 'menu_number',
+                'dish_name',
                 'provider',
                 'served_at',
                 'rating_average',
@@ -40,10 +42,18 @@ class CateringMenuController extends Controller
 
     public function update(UpdateCateringMenuRequest $request, CateringMenu $menu): JsonResponse
     {
-        $menu->forceFill([
-            'status' => CateringStatus::from($request->validated('status')),
-        ])->save();
+        $validated = $request->validated();
+        $menu->forceFill($validated)->save();
 
-        return $this->message('Status berhasil diperbarui.');
+        $isStatusOnly = array_key_exists('status', $validated) && count($validated) === 1;
+
+        return $this->message($isStatusOnly ? 'Status berhasil diperbarui.' : 'Menu catering berhasil diperbarui.');
+    }
+
+    public function destroy(CateringMenu $menu): JsonResponse
+    {
+        $menu->delete();
+
+        return $this->message('Menu catering berhasil dihapus.');
     }
 }

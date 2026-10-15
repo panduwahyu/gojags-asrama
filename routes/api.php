@@ -47,5 +47,6 @@ Route::middleware('auth')->group(function () {
         Route::patch('laundry-orders/{order}', [LaundryOrderController::class, 'update']);
         Route::post('catering-menus', [CateringMenuController::class, 'store']);
         Route::patch('catering-menus/{menu}', [CateringMenuController::class, 'update']);
+        Route::delete('catering-menus/{menu}', [CateringMenuController::class, 'destroy']);
     });
 });

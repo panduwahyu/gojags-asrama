@@ -12,6 +12,9 @@ class CateringMenuResource extends JsonResource
         return [
             'id' => $this->id,
             'menu_number' => $this->menu_number,
+            'dish_name' => $this->dish_name,
+            'meal_time' => $this->meal_time->value,
+            'meal_time_label' => $this->meal_time->label(),
             'provider' => $this->provider,
             'served_at' => $this->served_at,
             'status' => $this->status->value,
