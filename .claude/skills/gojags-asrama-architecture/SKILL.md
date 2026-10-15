@@ -50,7 +50,7 @@ app/
   Models/             User, Room, RoomSlot, Stay, LaundryOrder, CateringMenu, CateringRating,
                       LeavePermit, Complaint
   Actions/            AllocateRooms, CheckIn, CheckOut, UpdateResidentProfile
-  Support/            TableQuery, DateFormat, RoomLocks
+  Support/            TableQuery, DateFormat, RoomLocks, RoomOccupancy
   Http/
     Controllers/      SessionController, DashboardController, RoomController, RoomAllocationController,
                       ResidentController, MyRoomController, LaundryOrderController,
@@ -75,13 +75,16 @@ frontend/
     pages/            login.vue, admin/{index,rooms,laundry,catering}.vue,
                       resident/{index,room,laundry,catering}.vue
     components/
-      ui/             DataTable, StatusBadge, AlertMessage, PageHeader
-      layout/         AppSidebar, AppHeader, AppFooter, ThemeToggle
+      ui/             DataTable, StatusBadge, AlertMessage, PageHeader, BerakhlakLogo,
+                      SortableHeader, TablePagination, TableSearch
+      layout/         AppSidebar, AppHeader, AppFooter, ThemeToggle, AppIcon
+      auth/ dashboard/   komponen khusus halaman login & dasbor
       leave-permit/   LeavePermitSection, LeavePermitForm, LeavePermitTable
       complaint/ laundry/ catering/ room/     pola yang sama
     composables/      useSession, useApi, useTable, useAction, usePolling
     types/            satu berkas per fitur + api.ts (Paginated<T>, ApiMessage)
-    utils/            datetime.ts, currency.ts, errors.ts
+    utils/            datetime.ts, currency.ts, errors.ts, navigation.ts
+
     middleware/       auth.global.ts
   playwright.config.ts / playwright.e2e.config.ts / vitest.config.ts
   scripts/            smoke.mjs, reset-e2e-db.mjs

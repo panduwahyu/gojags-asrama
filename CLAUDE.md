@@ -59,7 +59,7 @@ Peramban hanya berkomunikasi dengan Nuxt. `frontend/server/routes/api/[...path].
 │   │   ├── Requests/          # FormRequest per aksi tulis dengan pesan validasi Bahasa Indonesia
 │   │   └── Resources/         # JsonResource per entitas (tanpa pembungkus per baris)
 │   ├── Models/                # Model Eloquent (User, Room, RoomSlot, Stay, LaundryOrder, CateringMenu, CateringRating, LeavePermit, Complaint)
-│   └── Support/               # DateFormat, TableQuery, RoomLocks
+│   └── Support/               # DateFormat, TableQuery, RoomLocks, RoomOccupancy
 ├── config/
 │   └── asrama.php             # Konstanta konfigurasi domain (floors, room_capacity, rooms_per_floor, per_page_options)
 ├── database/
@@ -69,7 +69,7 @@ Peramban hanya berkomunikasi dengan Nuxt. `frontend/server/routes/api/[...path].
 ├── frontend/
 │   ├── app/
 │   │   ├── assets/css/        # Stylesheet global Tailwind v4 (main.css)
-│   │   ├── components/        # Komponen UI (ui/, layout/, dashboard/, room/, leave-permit/, complaint/, laundry/, catering/)
+│   │   ├── components/        # Komponen UI (ui/, layout/, auth/, dashboard/, room/, leave-permit/, complaint/, laundry/, catering/)
 │   │   ├── composables/       # useSession, useApi, useAction, usePolling, useTable
 │   │   ├── layouts/           # default.vue, auth.vue
 │   │   ├── middleware/        # auth.global.ts
@@ -97,7 +97,7 @@ Peramban hanya berkomunikasi dengan Nuxt. `frontend/server/routes/api/[...path].
 
 ### Pengujian
 
-- **Unit PHP (`tests/Unit/`)**: menguji logika murni (`RoomStatus::fromCounts`).
+- **Unit PHP (`tests/Unit/`)**: menguji logika murni tanpa basis data (enum, RoomStatus::fromCounts, accessor model).
 - **Feature API (`tests/Feature/`)**: menguji seluruh aturan domain, validasi, dan batas peran terhadap basis data pengujian.
 - **Unit TS (`frontend/tests/unit/`)**: menguji fungsi murni di `frontend/app/utils/` dengan Vitest.
 - **UI Tiruan (`frontend/tests/browser/`)**: menguji perilaku komponen dan halaman Nuxt dengan Playwright (`page.route`), tanpa memerlukan Laravel.

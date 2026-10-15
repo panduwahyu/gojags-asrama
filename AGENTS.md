@@ -77,7 +77,7 @@ Panduan konteks arsitektur, alur kerja pengembangan, aturan domain, dan konvensi
 │   │   ├── Requests/          # FormRequest validasi dengan pesan Bahasa Indonesia
 │   │   └── Resources/         # JsonResource transformasi respons JSON
 │   ├── Models/                # Model Eloquent (User, Room, RoomSlot, Stay, LaundryOrder, CateringMenu, ...)
-│   └── Support/               # DateFormat, TableQuery, RoomLocks
+│   └── Support/               # DateFormat, TableQuery, RoomLocks, RoomOccupancy
 ├── config/
 │   └── asrama.php             # Konfigurasi lantai, kapasitas kamar, opsi paginasi, display_timezone
 ├── database/
@@ -87,7 +87,7 @@ Panduan konteks arsitektur, alur kerja pengembangan, aturan domain, dan konvensi
 ├── frontend/
 │   ├── app/
 │   │   ├── assets/css/        # Stylesheet global & konfigurasi Tailwind v4 (main.css)
-│   │   ├── components/        # Komponen terkelompok per domain (ui/, layout/, dashboard/, room/, ...)
+│   │   ├── components/        # Komponen terkelompok per domain (ui/, layout/, auth/, dashboard/, room/, ...)
 │   │   ├── composables/       # useSession.ts, useApi.ts, useAction.ts, usePolling.ts, useTable.ts
 │   │   ├── layouts/           # default.vue (sidebar/header/footer), auth.vue (halaman login)
 │   │   ├── middleware/        # auth.global.ts (proteksi rute via awalan URL tanpa definePageMeta)
