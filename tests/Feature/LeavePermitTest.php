@@ -168,4 +168,24 @@ class LeavePermitTest extends TestCase
             ->assertOk()
             ->assertJsonPath('message', 'Izin keluar ditolak.');
     }
+
+    public function test_submitting_leave_permit_ignores_status_user_id_and_reviewed_by(): void
+    {
+        $resident = User::factory()->resident()->create();
+        $other = User::factory()->resident()->create();
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($resident)
+            ->postJson('/api/leave-permits', $this->validPayload([
+                'status' => PermitStatus::Approved->value,
+                'user_id' => $other->id,
+                'reviewed_by' => $admin->id,
+            ]))
+            ->assertCreated();
+
+        $permit = LeavePermit::latest('id')->firstOrFail();
+        $this->assertSame($resident->id, $permit->user_id);
+        $this->assertSame(PermitStatus::Pending, $permit->status);
+        $this->assertNull($permit->reviewed_by);
+    }
 }

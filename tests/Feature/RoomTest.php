@@ -133,4 +133,45 @@ class RoomTest extends TestCase
     {
         $this->getJson('/api/rooms')->assertUnauthorized();
     }
+
+    public function test_rooms_can_be_sorted_by_resident_and_assigned_count(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $andi = User::factory()->resident()->create(['name' => 'Andi Pratama']);
+        $budi = User::factory()->resident()->create(['name' => 'Budi Santoso']);
+        $cici = User::factory()->resident()->create(['name' => 'Cici Paramida']);
+
+        $emptyRoom = Room::factory()->create(['number' => '501', 'floor' => 5]);
+        $emptyRoom->slots()->createMany([['position' => 1], ['position' => 2]]);
+
+        $twoAssigned = Room::factory()->create(['number' => '502', 'floor' => 5]);
+        $twoAssigned->slots()->createMany([
+            ['position' => 1, 'user_id' => $budi->id],
+            ['position' => 2, 'user_id' => $cici->id],
+        ]);
+
+        $oneAssigned = Room::factory()->create(['number' => '503', 'floor' => 5]);
+        $oneAssigned->slots()->createMany([
+            ['position' => 1, 'user_id' => $andi->id],
+            ['position' => 2],
+        ]);
+
+        $byResident = $this->actingAs($admin)
+            ->getJson('/api/rooms?sort=resident&direction=asc')
+            ->assertOk();
+
+        $this->assertSame(
+            ['501', '503', '502'],
+            array_column($byResident->json('data'), 'number')
+        );
+
+        $byAssigned = $this->actingAs($admin)
+            ->getJson('/api/rooms?sort=assigned_count&direction=asc')
+            ->assertOk();
+
+        $this->assertSame(
+            ['501', '503', '502'],
+            array_column($byAssigned->json('data'), 'number')
+        );
+    }
 }

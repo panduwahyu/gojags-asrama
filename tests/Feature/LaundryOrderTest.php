@@ -152,4 +152,23 @@ class LaundryOrderTest extends TestCase
         $this->assertSame(LaundryStatus::Pending, $order->status);
         $this->assertSame('15000.00', $order->cost);
     }
+
+    public function test_submitting_laundry_order_ignores_status_and_cost(): void
+    {
+        $resident = User::factory()->resident()->create();
+
+        $this->actingAs($resident)
+            ->postJson('/api/laundry-orders', [
+                'items' => 'Celana jeans',
+                'set_count' => 1,
+                'status' => LaundryStatus::Done->value,
+                'cost' => 50000,
+            ])
+            ->assertCreated();
+
+        $order = LaundryOrder::latest('id')->firstOrFail();
+        $this->assertSame($resident->id, $order->user_id);
+        $this->assertSame(LaundryStatus::Pending, $order->status);
+        $this->assertNull($order->cost);
+    }
 }

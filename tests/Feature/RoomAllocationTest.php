@@ -142,7 +142,7 @@ class RoomAllocationTest extends TestCase
         $this->seed(RoomSeeder::class);
         $admin = User::factory()->admin()->create();
         $departed = User::factory()->resident()->profiled()->create();
-        Stay::factory()->for($departed)->checkedOut()->create();
+        Stay::factory()->for($departed)->for(Room::first())->checkedOut()->create();
 
         $response = $this->actingAs($admin)
             ->postJson('/api/rooms/allocate')
@@ -234,5 +234,132 @@ class RoomAllocationTest extends TestCase
         $this->actingAs($resident)
             ->postJson('/api/my-room/check-in')
             ->assertOk();
+    }
+
+    public function test_new_cohort_assigned_to_highest_floor_with_available_slots_when_no_empty_floor(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $user5 = User::factory()->resident()->profiled('61', Gender::Male, 'islam')->create();
+        $user4 = User::factory()->resident()->profiled('62', Gender::Male, 'islam')->create();
+        $user3 = User::factory()->resident()->profiled('63', Gender::Male, 'islam')->create();
+
+        $room5 = Room::factory()->create(['number' => '501', 'floor' => 5]);
+        $room5->slots()->createMany([
+            ['position' => 1, 'user_id' => $user5->id],
+            ['position' => 2],
+        ]);
+
+        $room4 = Room::factory()->create(['number' => '401', 'floor' => 4]);
+        $room4->slots()->createMany([
+            ['position' => 1, 'user_id' => $user4->id],
+            ['position' => 2, 'user_id' => User::factory()->resident()->profiled('62', Gender::Male, 'islam')->create()->id],
+        ]);
+
+        $room3 = Room::factory()->create(['number' => '301', 'floor' => 3]);
+        $room3->slots()->createMany([
+            ['position' => 1, 'user_id' => $user3->id],
+            ['position' => 2, 'user_id' => User::factory()->resident()->profiled('63', Gender::Male, 'islam')->create()->id],
+        ]);
+
+        User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create();
+
+        $response = $this->actingAs($admin)
+            ->postJson('/api/rooms/allocate')
+            ->assertOk();
+
+        $this->assertSame(5, $response->json('allocated.0.floor'));
+        $this->assertSame('501', $response->json('allocated.0.room'));
+    }
+
+    public function test_room_priority_on_same_floor(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $roomSame = Room::factory()->create(['number' => '501', 'floor' => 5]);
+        $roomSame->slots()->createMany([['position' => 1], ['position' => 2]]);
+
+        $roomDiff = Room::factory()->create(['number' => '502', 'floor' => 5]);
+        $roomDiff->slots()->createMany([['position' => 1], ['position' => 2]]);
+
+        $roomEmpty = Room::factory()->create(['number' => '503', 'floor' => 5]);
+        $roomEmpty->slots()->createMany([['position' => 1], ['position' => 2]]);
+
+        $occupantSame = User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create();
+        $occupantDiff = User::factory()->resident()->profiled('63', Gender::Male, 'islam')->create();
+
+        $roomSame->slots()->where('position', 1)->update(['user_id' => $occupantSame->id]);
+        $roomDiff->slots()->where('position', 1)->update(['user_id' => $occupantDiff->id]);
+
+        $cand1 = User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create(['name' => 'Cand 1']);
+        $this->actingAs($admin)->postJson('/api/rooms/allocate')->assertOk();
+        $this->assertSame($roomSame->id, $cand1->fresh()->slot->room_id);
+
+        $cand2 = User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create(['name' => 'Cand 2']);
+        $this->actingAs($admin)->postJson('/api/rooms/allocate')->assertOk();
+        $this->assertSame($roomDiff->id, $cand2->fresh()->slot->room_id);
+
+        $cand3 = User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create(['name' => 'Cand 3']);
+        $this->actingAs($admin)->postJson('/api/rooms/allocate')->assertOk();
+        $this->assertSame($roomEmpty->id, $cand3->fresh()->slot->room_id);
+    }
+
+    public function test_cohort_with_home_floor_five_overflows_to_floor_four_when_full(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $room5 = Room::factory()->create(['number' => '501', 'floor' => 5]);
+        $room5->slots()->createMany([['position' => 1], ['position' => 2]]);
+
+        $room4 = Room::factory()->create(['number' => '401', 'floor' => 4]);
+        $room4->slots()->createMany([['position' => 1], ['position' => 2]]);
+
+        $occ1 = User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create();
+        $occ2 = User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create();
+        $room5->slots()->where('position', 1)->update(['user_id' => $occ1->id]);
+        $room5->slots()->where('position', 2)->update(['user_id' => $occ2->id]);
+
+        User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create();
+        $response = $this->actingAs($admin)->postJson('/api/rooms/allocate')->assertOk();
+
+        $this->assertSame(4, $response->json('allocated.0.floor'));
+        $this->assertSame('401', $response->json('allocated.0.room'));
+    }
+
+    public function test_cohorts_are_processed_in_natural_sort_order(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $room5 = Room::factory()->create(['number' => '501', 'floor' => 5]);
+        $room5->slots()->createMany([['position' => 1], ['position' => 2]]);
+
+        $room4 = Room::factory()->create(['number' => '401', 'floor' => 4]);
+        $room4->slots()->createMany([['position' => 1], ['position' => 2]]);
+
+        User::factory()->resident()->profiled('10', Gender::Male, 'islam')->create(['name' => 'User Ten']);
+        User::factory()->resident()->profiled('9', Gender::Male, 'islam')->create(['name' => 'User Nine']);
+
+        $response = $this->actingAs($admin)->postJson('/api/rooms/allocate')->assertOk();
+
+        $byName = collect($response->json('allocated'))->keyBy('name');
+        $this->assertSame(5, $byName['User Nine']['floor']);
+        $this->assertSame(4, $byName['User Ten']['floor']);
+    }
+
+    public function test_cohort_with_whitespace_is_normalized_to_same_cohort(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $room = Room::factory()->create(['number' => '501', 'floor' => 5]);
+        $room->slots()->createMany([['position' => 1], ['position' => 2]]);
+
+        User::factory()->resident()->profiled(' 64 ', Gender::Male, 'islam')->create(['name' => 'Spaced']);
+        User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create(['name' => 'Normal']);
+
+        $response = $this->actingAs($admin)->postJson('/api/rooms/allocate')->assertOk();
+
+        $this->assertCount(2, $response->json('allocated'));
+        $this->assertSame('501', $response->json('allocated.0.room'));
+        $this->assertSame('501', $response->json('allocated.1.room'));
     }
 }

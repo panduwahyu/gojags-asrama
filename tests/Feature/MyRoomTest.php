@@ -112,4 +112,27 @@ class MyRoomTest extends TestCase
             ->getJson('/api/my-room')
             ->assertForbidden();
     }
+
+    public function test_check_out_without_active_stay_returns_422_and_retains_slot(): void
+    {
+        $resident = User::factory()->resident()->create();
+        $room = Room::factory()->create(['number' => '501', 'floor' => 5]);
+        $slot = $room->slots()->create([
+            'position' => 1,
+            'user_id' => $resident->id,
+            'checked_in_at' => now(),
+        ]);
+        $room->slots()->create(['position' => 2]);
+
+        $this->actingAs($resident)
+            ->postJson('/api/my-room/check-out')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'room' => 'Riwayat check-in aktif tidak ditemukan.',
+            ]);
+
+        $slot->refresh();
+        $this->assertSame($resident->id, $slot->user_id);
+        $this->assertNotNull($slot->checked_in_at);
+    }
 }
