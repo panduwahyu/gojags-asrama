@@ -74,15 +74,19 @@ async function transition(kind: 'check-in' | 'check-out') {
         >
           Check-in
         </button>
+        <ConfirmButton
+          v-if="room.checked_in_at"
+          label="Check-out"
+          confirm-label="Ya, check-out"
+          :busy="action.busy.value"
+          described-as="Check-out dari kamar"
+          @confirm="transition('check-out')"
+        />
         <button
+          v-else
           type="button"
-          class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200
-            bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-xs transition
-            hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600
-            disabled:opacity-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200
-            dark:hover:border-rose-900 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
-          :disabled="action.busy.value || !room.checked_in_at"
-          @click="transition('check-out')"
+          class="btn-secondary"
+          disabled
         >
           Check-out
         </button>

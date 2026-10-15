@@ -38,6 +38,10 @@ async function allocate() {
     <h2 class="section-title">
       Alokasi kamar otomatis
     </h2>
+    <p class="muted mt-1 text-xs">
+      Kamar nonaktif dilewati. Agama dilonggarkan bila tidak ada kamar seagama; laki-laki dan perempuan
+      tidak pernah sekamar. Penempatan khusus dilakukan manual di halaman Penghuni.
+    </p>
 
     <AlertMessage
       :error="action.error.value"
@@ -85,6 +89,12 @@ async function allocate() {
             :key="`${user.id}-${user.room}`"
           >
             {{ user.name }} — kamar {{ user.room }}, lantai {{ user.floor }}
+            <span
+              v-if="user.notes.length"
+              class="font-semibold text-amber-700 dark:text-amber-300"
+            >
+              (perhatian: {{ user.notes.join(' ') }})
+            </span>
           </li>
         </ul>
       </details>

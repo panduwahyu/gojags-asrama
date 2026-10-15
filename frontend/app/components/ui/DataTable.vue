@@ -11,6 +11,7 @@ type TableState<Row> = {
   loading: Ref<boolean>
   loadError: Ref<boolean>
   search: Ref<string>
+  committedQuery: Ref<string>
   sort: Ref<string>
   direction: Ref<'asc' | 'desc'>
   page: Ref<number>
@@ -26,6 +27,8 @@ defineProps<{
   columns: TableColumn[]
   searchLabel: string
   emptyText: string
+  /** Path API ekspor (mis. "laundry-orders/export"); bila diisi, tombol unduh Excel/PDF tampil. */
+  exportPath?: string
 }>()
 
 function cellText(row: T, key: string): string {
@@ -43,7 +46,18 @@ function cellText(row: T, key: string): string {
       :loading="table.loading.value"
       @submit="table.applySearch()"
       @reset="table.resetSearch()"
-    />
+    >
+      <ExportButtons
+        v-if="exportPath"
+        :path="exportPath"
+        :name="searchLabel"
+        :query="{
+          q: table.committedQuery.value || undefined,
+          sort: table.sort.value,
+          direction: table.direction.value,
+        }"
+      />
+    </TableSearch>
 
     <AlertMessage
       v-if="table.loadError.value"

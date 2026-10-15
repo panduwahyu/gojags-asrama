@@ -13,8 +13,6 @@ const emit = defineEmits<{
   delete: [menu: CateringMenu]
 }>()
 
-const confirmingDeleteId = ref<number | null>(null)
-
 const columns = computed(() => [
   { key: 'menu_number', label: 'Menu', sortable: true },
   { key: 'dish_name', label: 'Nama makanan', sortable: true },
@@ -27,15 +25,6 @@ const columns = computed(() => [
     ? [{ key: 'my_rating', label: 'Rating saya', sortable: true }, { key: 'actions', label: 'Beri rating' }]
     : [{ key: 'actions', label: 'Aksi' }]),
 ])
-
-function onRate(menu: CateringMenu, rating: number) {
-  emit('rate', menu, rating)
-}
-
-function onDelete(menu: CateringMenu) {
-  confirmingDeleteId.value = null
-  emit('delete', menu)
-}
 </script>
 
 <template>
@@ -51,6 +40,7 @@ function onDelete(menu: CateringMenu) {
       :columns="columns"
       search-label="Cari catering"
       empty-text="Belum ada menu catering."
+      export-path="catering-menus/export"
     >
       <template #menu_number="{ row }">
         <span class="whitespace-nowrap font-semibold">Menu {{ row.menu_number }}</span>
@@ -93,49 +83,34 @@ function onDelete(menu: CateringMenu) {
       </template>
 
       <template #actions="{ row }">
-        <div v-if="admin" class="flex items-center gap-2">
-          <template v-if="confirmingDeleteId !== row.id">
-            <button
-              type="button"
-              class="btn-secondary btn-sm"
-              :disabled="busy"
-              @click="emit('edit', row)"
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              class="btn-danger btn-sm"
-              :disabled="busy"
-              @click="confirmingDeleteId = row.id"
-            >
-              Hapus
-            </button>
-          </template>
-          <template v-else>
-            <button
-              type="button"
-              class="btn-danger btn-sm"
-              :disabled="busy"
-              @click="onDelete(row)"
-            >
-              Ya, hapus
-            </button>
-            <button
-              type="button"
-              class="btn-text py-1! px-2! text-xs"
-              :disabled="busy"
-              @click="confirmingDeleteId = null"
-            >
-              Batal
-            </button>
-          </template>
+        <div
+          v-if="admin"
+          class="flex items-center gap-2"
+        >
+          <button
+            type="button"
+            class="btn-secondary btn-sm"
+            :disabled="busy"
+            @click="emit('edit', row)"
+          >
+            Edit
+          </button>
+          <ConfirmButton
+            label="Hapus"
+            confirm-label="Ya, hapus"
+            :busy="busy"
+            :described-as="`Hapus menu ${row.menu_number}`"
+            @confirm="emit('delete', row)"
+          />
         </div>
-        <div v-else class="min-w-40">
+        <div
+          v-else
+          class="min-w-40"
+        >
           <CateringRatingForm
             :menu="row"
             :busy="busy"
-            @rate="onRate"
+            @rate="(menu, rating) => emit('rate', menu, rating)"
           />
         </div>
       </template>

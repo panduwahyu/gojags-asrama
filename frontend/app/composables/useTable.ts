@@ -3,6 +3,8 @@ import type { Paginated } from '~/types/api'
 export type SortDirection = 'asc' | 'desc'
 
 export function useTable<T, R extends Paginated<T> = Paginated<T>>(path: string) {
+  const api = useApi()
+
   const search = ref('')
   const committedQuery = ref('')
   const sort = ref('id')
@@ -39,14 +41,12 @@ export function useTable<T, R extends Paginated<T> = Paginated<T>>(path: string)
     loading.value = true
     loadError.value = false
     try {
-      const data = await $fetch<R>(`/api/${path}`, {
-        query: {
-          q: committedQuery.value || undefined,
-          sort: sort.value,
-          direction: direction.value,
-          per_page: perPageSize.value,
-          page: page.value,
-        },
+      const data = await api.get<R>(path, {
+        q: committedQuery.value || undefined,
+        sort: sort.value,
+        direction: direction.value,
+        per_page: perPageSize.value,
+        page: page.value,
       })
       if (requestId !== currentRequestId) {
         return
@@ -54,6 +54,11 @@ export function useTable<T, R extends Paginated<T> = Paginated<T>>(path: string)
       response.value = data
       rows.value = data.data
       meta.value = data.meta
+
+      // Halaman yang diminta sudah tidak ada (datanya berkurang): pindah ke halaman terakhir.
+      if (data.meta.last_page >= 1 && page.value > data.meta.last_page) {
+        page.value = data.meta.last_page
+      }
     } catch {
       if (requestId === currentRequestId) {
         loadError.value = true
@@ -117,6 +122,7 @@ export function useTable<T, R extends Paginated<T> = Paginated<T>>(path: string)
     loading,
     loadError,
     search,
+    committedQuery,
     sort,
     direction,
     page,

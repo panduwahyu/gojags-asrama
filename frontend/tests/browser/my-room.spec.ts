@@ -45,11 +45,17 @@ test('penghuni melakukan check-in lalu check-out dan riwayat diperbarui', async 
   await expect(roomSection.getByRole('button', { name: 'Check-out' })).toBeDisabled()
 
   await roomSection.getByRole('button', { name: 'Check-in' }).click()
-  await expect(page.getByRole('status')).toContainText('Check-in berhasil.')
+  await expect(page.getByRole('status')).toContainText(MESSAGES.CHECK_IN_SUCCESS)
+  await expect(roomSection.getByRole('button', { name: 'Check-out' })).toBeEnabled()
+
+  // Check-out meminta konfirmasi dua langkah; Batal tidak mengirim apa pun.
+  await roomSection.getByRole('button', { name: 'Check-out' }).click()
+  await roomSection.getByRole('button', { name: 'Batal' }).click()
   await expect(roomSection.getByRole('button', { name: 'Check-out' })).toBeEnabled()
 
   await roomSection.getByRole('button', { name: 'Check-out' }).click()
-  await expect(page.getByRole('status')).toContainText('Check-out berhasil.')
+  await roomSection.getByRole('button', { name: 'Ya, check-out' }).click()
+  await expect(page.getByRole('status')).toContainText(MESSAGES.CHECK_OUT_SUCCESS)
   await expect(roomSection.getByRole('heading', { name: 'Belum ada alokasi kamar' })).toBeVisible()
 })
 
@@ -69,5 +75,5 @@ test('menampilkan pesan error server saat check-in gagal', async ({ asResident: 
   await page.goto('/resident/room')
   const roomSection = page.getByRole('region', { name: 'Kamar saya' })
   await roomSection.getByRole('button', { name: 'Check-in' }).click()
-  await expect(page.getByRole('alert')).toContainText('Anda sudah melakukan check-in.')
+  await expect(page.getByRole('alert')).toContainText(MESSAGES.ALREADY_CHECKED_IN)
 })

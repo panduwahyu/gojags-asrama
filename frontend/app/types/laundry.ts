@@ -1,6 +1,6 @@
 import type { Tone } from './api'
 
-export type LaundryStatus = 'pending' | 'done'
+export type LaundryStatus = 'pending' | 'done' | 'cancelled'
 
 export type LaundryOrder = {
   id: number
@@ -18,12 +18,14 @@ export type LaundryOrderInput = {
   set_count: number
 }
 
+/** Admin hanya memilih Diajukan atau Selesai; pembatalan dilakukan penghuni. */
 export type LaundryStatusInput = {
-  status: LaundryStatus
+  status: 'pending' | 'done'
   cost: number | null
 }
 
 export const LAUNDRY_TONE: Record<LaundryStatus, Tone> = {
   pending: 'info',
   done: 'success',
+  cancelled: 'neutral',
 }

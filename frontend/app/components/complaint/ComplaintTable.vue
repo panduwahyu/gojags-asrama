@@ -9,7 +9,9 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  resolve: [complaint: Complaint]
+  progress: [complaint: Complaint, response: string]
+  resolve: [complaint: Complaint, response: string]
+  reopen: [complaint: Complaint]
 }>()
 
 const columns = computed(() => [
@@ -18,8 +20,9 @@ const columns = computed(() => [
   { key: 'body', label: 'Isi keluhan', sortable: true },
   { key: 'created_at', label: 'Waktu diajukan', sortable: true },
   { key: 'status', label: 'Status', sortable: true },
+  { key: 'response', label: 'Tanggapan petugas' },
   { key: 'resolved_at', label: 'Waktu resolved', sortable: true },
-  ...(props.admin ? [{ key: 'actions', label: 'Aksi' }] : []),
+  { key: 'actions', label: 'Aksi' },
 ])
 </script>
 
@@ -29,6 +32,7 @@ const columns = computed(() => [
     :columns="columns"
     search-label="Cari keluhan asrama"
     empty-text="Belum ada keluhan asrama."
+    export-path="complaints/export"
   >
     <template #title="{ row }">
       <span class="min-w-36 break-words font-semibold">{{ row.title }}</span>
@@ -48,6 +52,21 @@ const columns = computed(() => [
       </StatusBadge>
     </template>
 
+    <template #response="{ row }">
+      <span
+        v-if="row.response"
+        class="min-w-40 whitespace-pre-wrap break-words"
+      >
+        {{ row.response }}
+      </span>
+      <span
+        v-else
+        class="muted text-xs"
+      >
+        Belum ada tanggapan
+      </span>
+    </template>
+
     <template #resolved_at="{ row }">
       <span class="whitespace-nowrap">
         {{ row.resolved_at ? formatWib(row.resolved_at) : 'Belum diselesaikan' }}
@@ -56,19 +75,26 @@ const columns = computed(() => [
 
     <template #actions="{ row }">
       <button
-        v-if="row.status === 'pending'"
+        v-if="row.status === 'resolved'"
         type="button"
-        class="btn btn-sm whitespace-nowrap"
+        class="btn-secondary btn-sm whitespace-nowrap"
         :disabled="busy"
-        @click="emit('resolve', row)"
+        @click="emit('reopen', row)"
       >
-        Tandai Resolved
+        Buka kembali
       </button>
+      <ComplaintResponseForm
+        v-else-if="admin"
+        :complaint="row"
+        :busy="busy"
+        @progress="(complaint, response) => emit('progress', complaint, response)"
+        @resolve="(complaint, response) => emit('resolve', complaint, response)"
+      />
       <span
         v-else
         class="muted text-xs"
       >
-        Sudah ditangani
+        Menunggu petugas
       </span>
     </template>
   </DataTable>

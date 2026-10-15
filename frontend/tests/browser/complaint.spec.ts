@@ -22,7 +22,7 @@ test('penghuni mengirim keluhan baru dan tabel diperbarui', async ({ asResident:
   await section.getByLabel('Isi keluhan').fill('Kran kamar mandi menetes terus.')
   await section.getByRole('button', { name: 'Kirim keluhan' }).click()
 
-  await expect(section.getByRole('status')).toContainText('Keluhan berhasil dikirim.')
+  await expect(section.getByRole('status')).toContainText(MESSAGES.COMPLAINT_SENT)
   await expect(section.getByRole('row', { name: /Kran bocor/ })).toBeVisible()
   await expect(section.getByLabel('Judul keluhan')).toHaveValue('')
 })
@@ -32,6 +32,7 @@ test('admin menandai keluhan Resolved', async ({ asAdmin: page }) => {
   await mockTable(page, 'complaints', () => [complaint])
   await page.route('**/api/complaints/77/resolve', async (route) => {
     expect(route.request().method()).toBe('PATCH')
+    expect(route.request().postDataJSON()).toEqual({ response: null })
     complaint.status = 'resolved'
     complaint.status_label = 'Resolved'
     complaint.resolved_at = '2026-10-13T06:00:00.000000Z'
@@ -43,8 +44,8 @@ test('admin menandai keluhan Resolved', async ({ asAdmin: page }) => {
   await expect(section.getByRole('row', { name: /Siti Aminah/ })).toBeVisible()
   await section.getByRole('button', { name: 'Tandai Resolved' }).click()
 
-  await expect(section.getByRole('status')).toContainText('berhasil ditandai selesai')
-  await expect(section.getByRole('row', { name: /Sudah ditangani/ })).toBeVisible()
+  await expect(section.getByRole('status').filter({ hasText: MESSAGES.COMPLAINT_RESOLVED })).toBeVisible()
+  await expect(section.getByRole('row', { name: /Siti Aminah/ }).getByRole('button', { name: 'Buka kembali' })).toBeVisible()
 })
 
 test('menampilkan pesan error server saat pengiriman keluhan gagal', async ({ asResident: page }) => {

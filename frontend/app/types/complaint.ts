@@ -1,6 +1,6 @@
 import type { Tone } from './api'
 
-export type ComplaintStatus = 'pending' | 'resolved'
+export type ComplaintStatus = 'pending' | 'in_progress' | 'resolved'
 
 export type Complaint = {
   id: number
@@ -9,6 +9,7 @@ export type Complaint = {
   body: string
   status: ComplaintStatus
   status_label: string
+  response: string | null
   created_at: string
   resolved_at: string | null
 }
@@ -20,5 +21,6 @@ export type ComplaintInput = {
 
 export const COMPLAINT_TONE: Record<ComplaintStatus, Tone> = {
   pending: 'info',
+  in_progress: 'warning',
   resolved: 'success',
 }

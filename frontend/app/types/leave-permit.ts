@@ -1,6 +1,6 @@
 import type { Tone } from './api'
 
-export type PermitStatus = 'pending' | 'approved' | 'rejected'
+export type PermitStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
 
 export type LeavePermit = {
   id: number
@@ -10,6 +10,7 @@ export type LeavePermit = {
   reason: string
   status: PermitStatus
   status_label: string
+  rejection_reason: string | null
 }
 
 export type LeavePermitInput = {
@@ -18,8 +19,14 @@ export type LeavePermitInput = {
   reason: string
 }
 
+export type PermitReviewInput = {
+  status: 'approved' | 'rejected'
+  rejection_reason?: string
+}
+
 export const PERMIT_TONE: Record<PermitStatus, Tone> = {
   pending: 'info',
   approved: 'success',
   rejected: 'danger',
+  cancelled: 'neutral',
 }

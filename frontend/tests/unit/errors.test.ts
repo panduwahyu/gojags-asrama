@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { errorMessage, statusOf } from '~/utils/errors'
+import { errorMessage, statusOf, validationMessages } from '~/utils/errors'
+import { MESSAGES } from '../support/messages'
 
 describe('statusOf', () => {
   it('membaca statusCode atau status dari objek error', () => {
@@ -35,8 +36,27 @@ describe('errorMessage', () => {
     expect(errorMessage({ statusCode: 429 })).toBe(
       'Terlalu banyak percobaan. Coba kembali sebentar lagi.',
     )
-    expect(errorMessage(new Error('Failed to fetch'))).toBe(
-      'Tidak dapat menghubungi server. Pastikan backend Laravel berjalan.',
-    )
+    expect(errorMessage(new Error('Failed to fetch'))).toBe(MESSAGES.CLIENT_NETWORK)
+  })
+
+  it('memetakan 404 dan galat server 5xx ke pesan yang sesuai, bukan pesan jaringan', () => {
+    expect(errorMessage({ statusCode: 404 })).toBe(MESSAGES.CLIENT_NOT_FOUND)
+    expect(errorMessage({ statusCode: 500 })).toBe(MESSAGES.CLIENT_SERVER_ERROR)
+    expect(errorMessage({ statusCode: 503 })).toBe(MESSAGES.CLIENT_SERVER_ERROR)
+  })
+
+  it('tidak menyebut nama teknologi kepada pengguna akhir', () => {
+    for (const status of [404, 500, undefined]) {
+      expect(errorMessage({ statusCode: status })).not.toMatch(/laravel|backend/i)
+    }
+  })
+})
+
+describe('validationMessages', () => {
+  it('mengambil daftar pesan dari satu kunci galat 422', () => {
+    const error = { data: { errors: { file: ['Baris 2: A.', 'Baris 3: B.'], other: ['X'] } } }
+    expect(validationMessages(error, 'file')).toEqual(['Baris 2: A.', 'Baris 3: B.'])
+    expect(validationMessages(error, 'missing')).toEqual([])
+    expect(validationMessages(new Error('x'), 'file')).toEqual([])
   })
 })

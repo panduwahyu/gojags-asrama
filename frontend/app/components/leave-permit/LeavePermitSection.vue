@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LeavePermit, LeavePermitInput, PermitStatus } from '~/types/leave-permit'
+import type { LeavePermit, LeavePermitInput, PermitReviewInput } from '~/types/leave-permit'
 
 const { isAdmin } = useSession()
 const api = useApi()
@@ -23,8 +23,16 @@ async function save(input: LeavePermitInput) {
   await table.refresh()
 }
 
-async function review(permit: LeavePermit, status: PermitStatus) {
-  await action.run(() => api.patch(`leave-permits/${permit.id}/review`, { status }))
+async function review(permit: LeavePermit, input: PermitReviewInput) {
+  await action.run(() => api.patch(`leave-permits/${permit.id}/review`, input))
+  await table.refresh()
+}
+
+async function cancel(permit: LeavePermit) {
+  if (editing.value?.id === permit.id) {
+    editing.value = null
+  }
+  await action.run(() => api.patch(`leave-permits/${permit.id}/cancel`))
   await table.refresh()
 }
 
@@ -67,6 +75,7 @@ watch(table.rows, (rows) => {
       :admin="isAdmin"
       @edit="editing = $event"
       @review="review"
+      @cancel="cancel"
     />
   </section>
 </template>

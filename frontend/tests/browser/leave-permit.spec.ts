@@ -22,7 +22,7 @@ test('penghuni mengajukan izin dan waktu dikirim sebagai UTC', async ({ asReside
   await section.getByLabel('Alasan').fill('Mengunjungi keluarga')
   await section.getByRole('button', { name: 'Ajukan izin' }).click()
 
-  await expect(section.getByRole('status')).toContainText('berhasil diajukan')
+  await expect(section.getByRole('status')).toContainText(MESSAGES.PERMIT_SENT)
   await expect(section.getByRole('row', { name: /Mengunjungi keluarga/ })).toBeVisible()
   await expect(section.getByLabel('Alasan')).toHaveValue('')
 })
@@ -43,7 +43,7 @@ test('penghuni mengedit izin yang masih berstatus Diajukan', async ({ asResident
   await section.getByLabel('Alasan').fill('Alasan diperbarui')
   await section.getByRole('button', { name: 'Simpan perubahan izin' }).click()
 
-  await expect(section.getByRole('status')).toContainText('berhasil diperbarui')
+  await expect(section.getByRole('status')).toContainText(MESSAGES.PERMIT_UPDATED)
   await expect(section.getByRole('row', { name: /Alasan diperbarui/ })).toBeVisible()
 })
 
@@ -63,8 +63,11 @@ test('admin meninjau izin keluar dan memperbarui status baris', async ({ asAdmin
   await expect(section.getByRole('row', { name: /Budi Santoso/ })).toBeVisible()
   await section.getByRole('button', { name: 'Setujui' }).click()
 
-  await expect(section.getByRole('status')).toContainText('berhasil disetujui')
-  await expect(section.getByRole('row', { name: /Sudah diproses/ })).toBeVisible()
+  await expect(section.getByRole('status').filter({ hasText: MESSAGES.PERMIT_APPROVED })).toBeVisible()
+  // Keputusan masih dapat diubah: Setujui hilang (sudah disetujui), Tolak tetap tersedia.
+  const row = section.getByRole('row', { name: /Budi Santoso/ })
+  await expect(row.getByRole('button', { name: 'Setujui' })).toHaveCount(0)
+  await expect(row.getByRole('button', { name: 'Tolak' })).toBeVisible()
 })
 
 test('menampilkan pesan error server saat pengajuan izin gagal', async ({ asResident: page }) => {

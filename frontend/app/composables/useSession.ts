@@ -14,5 +14,14 @@ export function useSession() {
     apply(await $fetch<Session>('/api/session'))
   }
 
-  return { user, csrfToken, isAdmin, apply, load }
+  /** Sesi habis saat halaman terbuka: kosongkan pengguna lalu kembali ke halaman login. */
+  async function expire() {
+    user.value = null
+    if (import.meta.client && window.location.pathname === '/login') {
+      return
+    }
+    await navigateTo('/login', { replace: true })
+  }
+
+  return { user, csrfToken, isAdmin, apply, load, expire }
 }

@@ -47,5 +47,5 @@ test('login gagal menampilkan pesan error dari server', async ({ page }) => {
   await page.getByLabel('Kata sandi').fill('salah')
   await page.getByRole('button', { name: 'Masuk' }).click()
 
-  await expect(page.getByRole('alert')).toContainText('Email atau kata sandi salah.')
+  await expect(page.getByRole('alert')).toContainText(MESSAGES.INVALID_CREDENTIALS)
 })

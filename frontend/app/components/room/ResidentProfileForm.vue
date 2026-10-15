@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Resident } from '~/types/room'
+import { RELIGIONS } from '~/types/room'
 
 const props = defineProps<{
   resident: Resident
@@ -9,14 +10,12 @@ const props = defineProps<{
 const emit = defineEmits<{
   save: [resident: Resident]
 }>()
-
-const RELIGIONS = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu']
 </script>
 
 <template>
   <form
     class="rounded-xl border border-slate-100 bg-slate-50/50 p-4 dark:border-slate-800 dark:bg-slate-900/40"
-    @submit.prevent="emit('save', resident)"
+    @submit.prevent="emit('save', props.resident)"
   >
     <div class="mb-3 flex items-center justify-between">
       <h3 class="text-sm font-bold text-slate-800 dark:text-white">
@@ -38,7 +37,7 @@ const RELIGIONS = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu']
           maxlength="100"
           required
           :aria-label="`Angkatan ${resident.name}`"
-          :disabled="busy || Boolean(resident.room_id)"
+          :disabled="busy"
         >
       </FormField>
       <FormField label="Gender" :for="`gender-${resident.id}`">
@@ -47,7 +46,7 @@ const RELIGIONS = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu']
           v-model="resident.gender"
           required
           :aria-label="`Gender ${resident.name}`"
-          :disabled="busy || Boolean(resident.room_id)"
+          :disabled="busy"
         >
           <option :value="null" disabled>
             Pilih gender
@@ -61,26 +60,27 @@ const RELIGIONS = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu']
         </select>
       </FormField>
       <FormField label="Agama" :for="`religion-${resident.id}`">
-        <input
+        <select
           :id="`religion-${resident.id}`"
           v-model="resident.religion"
-          maxlength="50"
           required
-          :list="`agama-options-${resident.id}`"
           :aria-label="`Agama ${resident.name}`"
-          :disabled="busy || Boolean(resident.room_id)"
+          :disabled="busy"
         >
-        <datalist :id="`agama-options-${resident.id}`">
+          <option :value="null" disabled>
+            Pilih agama
+          </option>
           <option
-            v-for="opt in RELIGIONS"
-            :key="opt"
-            :value="opt"
-          />
-        </datalist>
+            v-for="religion in RELIGIONS"
+            :key="religion.value"
+            :value="religion.value"
+          >
+            {{ religion.label }}
+          </option>
+        </select>
       </FormField>
     </div>
     <button
-      v-if="!resident.room_id"
       class="btn mt-4"
       :disabled="busy"
     >

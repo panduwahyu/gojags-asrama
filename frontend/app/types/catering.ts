@@ -1,7 +1,3 @@
-import type { Tone } from './api'
-
-export type CateringStatus = 'scheduled' | 'preparing' | 'done'
-
 export type MealTime = 'breakfast' | 'lunch' | 'dinner'
 
 export type CateringMenu = {
@@ -12,8 +8,6 @@ export type CateringMenu = {
   meal_time_label: string
   provider: string
   served_at: string
-  status: CateringStatus
-  status_label: string
   rating_average: number | null
   rating_count: number
   my_rating: number | null
@@ -26,10 +20,4 @@ export type CateringMenuInput = {
   meal_time: MealTime
   provider: string
   served_at: string
-}
-
-export const CATERING_TONE: Record<CateringStatus, Tone> = {
-  scheduled: 'info',
-  preparing: 'warning',
-  done: 'success',
 }

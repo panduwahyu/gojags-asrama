@@ -9,6 +9,8 @@ describe('navigation utils', () => {
       expect(requiredRole('/admin/rooms')).toBe('admin')
       expect(requiredRole('/admin/laundry')).toBe('admin')
       expect(requiredRole('/admin/catering')).toBe('admin')
+      expect(requiredRole('/admin/residents')).toBe('admin')
+      expect(requiredRole('/admin/account')).toBe('admin')
     })
 
     it('mengembalikan resident untuk rute /resident dan subrutenya', () => {
@@ -17,6 +19,7 @@ describe('navigation utils', () => {
       expect(requiredRole('/resident/room')).toBe('resident')
       expect(requiredRole('/resident/laundry')).toBe('resident')
       expect(requiredRole('/resident/catering')).toBe('resident')
+      expect(requiredRole('/resident/account')).toBe('resident')
     })
 
     it('mengembalikan null untuk rute publik atau rute yang tidak dikenal', () => {
@@ -33,8 +36,10 @@ describe('navigation utils', () => {
       expect(menus.map(m => m.to)).toEqual([
         '/admin',
         '/admin/rooms',
+        '/admin/residents',
         '/admin/laundry',
         '/admin/catering',
+        '/admin/account',
       ])
     })
 
@@ -45,6 +50,7 @@ describe('navigation utils', () => {
         '/resident/room',
         '/resident/laundry',
         '/resident/catering',
+        '/resident/account',
       ])
 
       const defaultMenus = menusFor(undefined)

@@ -51,5 +51,6 @@ const emit = defineEmits<{
     >
       Memuat data…
     </span>
+    <slot />
   </div>
 </template>

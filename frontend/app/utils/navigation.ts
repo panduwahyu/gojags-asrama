@@ -9,8 +9,10 @@ export type NavItem = {
 const ADMIN_MENUS: NavItem[] = [
   { label: 'Beranda', icon: 'home', to: '/admin' },
   { label: 'Kamar', icon: 'room', to: '/admin/rooms' },
+  { label: 'Penghuni', icon: 'users', to: '/admin/residents' },
   { label: 'Laundry', icon: 'laundry', to: '/admin/laundry' },
   { label: 'Catering', icon: 'catering', to: '/admin/catering' },
+  { label: 'Akun', icon: 'key', to: '/admin/account' },
 ]
 
 const RESIDENT_MENUS: NavItem[] = [
@@ -18,6 +20,7 @@ const RESIDENT_MENUS: NavItem[] = [
   { label: 'Kamar', icon: 'room', to: '/resident/room' },
   { label: 'Laundry', icon: 'laundry', to: '/resident/laundry' },
   { label: 'Catering', icon: 'catering', to: '/resident/catering' },
+  { label: 'Akun', icon: 'key', to: '/resident/account' },
 ]
 
 export function menusFor(role?: Role): NavItem[] {

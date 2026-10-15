@@ -21,7 +21,7 @@ test('penghuni mengajukan laundry baru dan tabel diperbarui', async ({ asResiden
   await page.getByLabel('Jumlah stel').fill('2')
   await page.getByRole('button', { name: 'Ajukan laundry' }).click()
 
-  await expect(page.getByRole('status')).toContainText('Pengajuan laundry berhasil dikirim.')
+  await expect(page.getByRole('status')).toContainText(MESSAGES.LAUNDRY_SENT)
   const tableSection = page.getByRole('region', { name: 'Pengajuan laundry' })
   await expect(tableSection.getByRole('row', { name: /Jaket dan handuk/ })).toBeVisible()
 })
@@ -44,7 +44,7 @@ test('admin memperbarui status dan biaya laundry', async ({ asAdmin: page }) => 
   await tableSection.getByLabel('Biaya laundry Rina Wati').fill('25000')
   await tableSection.getByRole('button', { name: 'Simpan' }).click()
 
-  await expect(page.getByRole('status')).toContainText('Status berhasil diperbarui.')
+  await expect(page.getByRole('status')).toContainText(MESSAGES.LAUNDRY_STATUS_UPDATED)
   await expect(tableSection.getByRole('row', { name: /25\.000/ })).toBeVisible()
 })
 

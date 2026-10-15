@@ -18,8 +18,18 @@ async function submit(input: ComplaintInput) {
   await table.refresh()
 }
 
-async function resolve(complaint: Complaint) {
-  await action.run(() => api.patch(`complaints/${complaint.id}/resolve`))
+async function progress(complaint: Complaint, response: string) {
+  await action.run(() => api.patch(`complaints/${complaint.id}/progress`, { response: response || null }))
+  await table.refresh()
+}
+
+async function resolve(complaint: Complaint, response: string) {
+  await action.run(() => api.patch(`complaints/${complaint.id}/resolve`, { response: response || null }))
+  await table.refresh()
+}
+
+async function reopen(complaint: Complaint) {
+  await action.run(() => api.patch(`complaints/${complaint.id}/reopen`))
   await table.refresh()
 }
 </script>
@@ -49,7 +59,9 @@ async function resolve(complaint: Complaint) {
       :table="table"
       :busy="action.busy.value"
       :admin="isAdmin"
+      @progress="progress"
       @resolve="resolve"
+      @reopen="reopen"
     />
   </section>
 </template>

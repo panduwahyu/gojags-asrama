@@ -154,3 +154,83 @@ test('jawaban lambat tidak menimpa hasil yang lebih baru', async ({ asResident: 
   await expect(section.getByText('Hasil pencarian baru')).toBeVisible()
   await expect(section.getByText('Hasil pencarian lama')).not.toBeVisible()
 })
+
+test('pindah ke halaman terakhir bila halaman yang diminta sudah tidak ada', async ({ asResident: page }) => {
+  const requested: string[] = []
+  await page.route('**/api/leave-permits?*', async (route) => {
+    const currentPage = new URL(route.request().url()).searchParams.get('page') ?? '1'
+    requested.push(currentPage)
+    // Halaman 2 sudah tidak ada: datanya berkurang sampai tinggal satu halaman.
+    if (currentPage === '2') {
+      await route.fulfill({ json: { data: [], meta: { current_page: 2, last_page: 1, total: 3 } } })
+      return
+    }
+    await route.fulfill({
+      json: {
+        data: [sampleLeavePermit({ reason: 'Baris di halaman satu' })],
+        meta: { current_page: Number(currentPage), last_page: 3, total: 25 },
+      },
+    })
+  })
+
+  await page.goto('/resident/room')
+  const section = page.getByRole('region', { name: 'Izin keluar' })
+  await section.getByRole('button', { name: 'Berikutnya' }).click()
+
+  await expect.poll(() => requested).toEqual(['1', '2', '1'])
+  await expect(section.getByText('Baris di halaman satu')).toBeVisible()
+  await expect(section.getByText('Belum ada pengajuan izin keluar.')).toHaveCount(0)
+})
+
+test('tombol unduh membawa pencarian dan urutan yang sedang tampil', async ({ asResident: page }) => {
+  await page.route('**/api/leave-permits?*', route =>
+    route.fulfill({ json: { data: [sampleLeavePermit()], meta: { current_page: 1, last_page: 1, total: 1 } } }),
+  )
+  const exportUrls: URL[] = []
+  await page.route('**/api/leave-permits/export?*', async (route) => {
+    exportUrls.push(new URL(route.request().url()))
+    await route.fulfill({
+      headers: {
+        'content-type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'content-disposition': 'attachment; filename="izin-keluar-20261015.xlsx"',
+      },
+      body: Buffer.from('PK'),
+    })
+  })
+
+  await page.goto('/resident/room')
+  const section = page.getByRole('region', { name: 'Izin keluar' })
+  await section.getByRole('searchbox', { name: 'Cari izin keluar' }).fill('kontrol')
+  await section.getByRole('button', { name: 'Cari', exact: true }).click()
+  await section.getByRole('columnheader', { name: /Alasan/ }).getByRole('button').click()
+
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    section.getByRole('button', { name: 'Unduh Excel' }).click(),
+  ])
+
+  expect(download.suggestedFilename()).toBe('izin-keluar-20261015.xlsx')
+  const params = exportUrls[0]?.searchParams
+  expect(params?.get('format')).toBe('xlsx')
+  expect(params?.get('q')).toBe('kontrol')
+  expect(params?.get('sort')).toBe('reason')
+  expect(params?.get('direction')).toBe('asc')
+})
+
+test('unduhan PDF meminta format pdf dan galatnya tampil di layar', async ({ asResident: page }) => {
+  await page.route('**/api/leave-permits?*', route =>
+    route.fulfill({ json: { data: [sampleLeavePermit()], meta: { current_page: 1, last_page: 1, total: 1 } } }),
+  )
+  const formats: string[] = []
+  await page.route('**/api/leave-permits/export?*', async (route) => {
+    formats.push(new URL(route.request().url()).searchParams.get('format') ?? '')
+    await route.fulfill({ status: 500, json: { message: MESSAGES.SERVER_ERROR } })
+  })
+
+  await page.goto('/resident/room')
+  const section = page.getByRole('region', { name: 'Izin keluar' })
+  await section.getByRole('button', { name: 'Unduh PDF' }).click()
+
+  await expect(section.getByRole('alert').filter({ hasText: MESSAGES.CLIENT_SERVER_ERROR })).toBeVisible()
+  expect(formats).toEqual(['pdf'])
+})

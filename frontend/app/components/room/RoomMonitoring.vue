@@ -11,13 +11,14 @@ const CARDS: { status: RoomStatus; label: string }[] = [
   { status: 'assigned', label: 'Assigned' },
   { status: 'occupied', label: 'Terisi' },
   { status: 'full', label: 'Penuh' },
+  { status: 'inactive', label: 'Nonaktif' },
 ]
 </script>
 
 <template>
   <section
     aria-label="Monitoring kamar"
-    class="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4"
+    class="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-5"
   >
     <div
       v-for="card in CARDS"

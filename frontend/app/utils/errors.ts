@@ -15,6 +15,15 @@ export function statusOf(error: unknown): number | undefined {
   return undefined
 }
 
+/** Daftar pesan validasi 422 dari satu kunci (mis. baris-baris galat impor). */
+export function validationMessages(error: unknown, key: string): string[] {
+  if (!isRecord(error) || !isRecord(error.data) || !isRecord(error.data.errors)) {
+    return []
+  }
+  const entry = error.data.errors[key]
+  return Array.isArray(entry) ? entry.filter((msg): msg is string => typeof msg === 'string') : []
+}
+
 export function errorMessage(error: unknown): string {
   if (isRecord(error) && isRecord(error.data) && isRecord(error.data.errors)) {
     const messages = Object.values(error.data.errors)
@@ -42,12 +51,18 @@ export function errorMessage(error: unknown): string {
   if (status === 403) {
     return 'Anda tidak memiliki izin untuk halaman ini.'
   }
+  if (status === 404) {
+    return 'Data tidak ditemukan. Mungkin sudah diubah atau dihapus.'
+  }
   if (status === 419) {
     return 'Sesi tidak valid. Muat ulang halaman dan coba kembali.'
   }
   if (status === 429) {
     return 'Terlalu banyak percobaan. Coba kembali sebentar lagi.'
   }
+  if (status !== undefined && status >= 500) {
+    return 'Terjadi kesalahan di server. Coba kembali sebentar lagi.'
+  }
 
-  return 'Tidak dapat menghubungi server. Pastikan backend Laravel berjalan.'
+  return 'Tidak dapat menghubungi server. Periksa koneksi Anda.'
 }

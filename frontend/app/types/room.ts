@@ -1,8 +1,19 @@
 import type { Paginated, Tone } from './api'
 
-export type RoomStatus = 'empty' | 'assigned' | 'occupied' | 'full'
+export type RoomStatus = 'empty' | 'assigned' | 'occupied' | 'full' | 'inactive'
 
 export type Gender = 'male' | 'female'
+
+export type Religion = 'islam' | 'kristen' | 'katolik' | 'hindu' | 'buddha' | 'konghucu'
+
+export const RELIGIONS: { value: Religion; label: string }[] = [
+  { value: 'islam', label: 'Islam' },
+  { value: 'kristen', label: 'Kristen' },
+  { value: 'katolik', label: 'Katolik' },
+  { value: 'hindu', label: 'Hindu' },
+  { value: 'buddha', label: 'Buddha' },
+  { value: 'konghucu', label: 'Konghucu' },
+]
 
 export type RoomResident = {
   id: number
@@ -14,6 +25,7 @@ export type Room = {
   id: number
   number: string
   floor: number
+  is_active: boolean
   status: RoomStatus
   status_label: string
   assigned_count: number
@@ -30,23 +42,45 @@ export type RoomsResponse = Paginated<Room> & {
 export type Resident = {
   id: number
   name: string
+  email: string
   cohort: string | null
   gender: Gender | null
-  religion: string | null
+  religion: Religion | null
   room_id: number | null
+  room_number: string | null
+  checked_in_at: string | null
+  can_cancel_check_out: boolean
 }
 
 export type ResidentProfileInput = {
   cohort: string
   gender: Gender
-  religion: string
+  religion: Religion
+}
+
+export type ResidentInput = ResidentProfileInput & {
+  name: string
+  email: string
+}
+
+/** Akun baru beserta sandi awal; hanya ditampilkan sekali. */
+export type Credential = {
+  name: string
+  email: string
+  password: string
 }
 
 export type AllocationResult = {
   message: string
-  allocated: { id: number; name: string; room: string; floor: number }[]
+  allocated: { id: number; name: string; room: string; floor: number; notes: string[] }[]
   waiting: { id: number; name: string }[]
   incomplete: { id: number; name: string }[]
+}
+
+/** Jawaban penempatan/pemindahan manual dan perbaikan profil. */
+export type WarningsResult = {
+  message: string
+  warnings: string[]
 }
 
 export type MyRoom = {
@@ -73,4 +107,5 @@ export const ROOM_TONE: Record<RoomStatus, Tone> = {
   assigned: 'info',
   occupied: 'warning',
   full: 'danger',
+  inactive: 'neutral',
 }

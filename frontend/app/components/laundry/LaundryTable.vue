@@ -10,6 +10,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   save: [order: LaundryOrder, input: LaundryStatusInput]
+  cancel: [order: LaundryOrder]
 }>()
 
 const columns = computed(() => [
@@ -19,7 +20,7 @@ const columns = computed(() => [
   { key: 'created_at', label: 'Tanggal', sortable: true },
   { key: 'status', label: 'Status', sortable: true },
   { key: 'cost', label: 'Biaya laundry', sortable: true },
-  ...(props.admin ? [{ key: 'actions', label: 'Perbarui status' }] : []),
+  { key: 'actions', label: props.admin ? 'Perbarui status' : 'Aksi' },
 ])
 
 function onSave(order: LaundryOrder, input: LaundryStatusInput) {
@@ -40,6 +41,7 @@ function onSave(order: LaundryOrder, input: LaundryStatusInput) {
       :columns="columns"
       search-label="Cari laundry"
       empty-text="Belum ada pengajuan laundry."
+      export-path="laundry-orders/export"
     >
       <template #items="{ row }">
         <span class="min-w-40 whitespace-pre-wrap break-words">{{ row.items }}</span>
@@ -60,13 +62,30 @@ function onSave(order: LaundryOrder, input: LaundryStatusInput) {
       </template>
 
       <template #actions="{ row }">
-        <div class="min-w-52">
+        <div
+          v-if="admin"
+          class="min-w-52"
+        >
           <LaundryStatusForm
             :order="row"
             :busy="busy"
             @save="onSave"
           />
         </div>
+        <ConfirmButton
+          v-else-if="row.status === 'pending'"
+          label="Batalkan"
+          confirm-label="Ya, batalkan"
+          :busy="busy"
+          :described-as="`Batalkan laundry ${row.items}`"
+          @confirm="emit('cancel', row)"
+        />
+        <span
+          v-else
+          class="muted text-xs"
+        >
+          {{ row.status === 'cancelled' ? 'Dibatalkan' : 'Sudah selesai' }}
+        </span>
       </template>
     </DataTable>
   </section>

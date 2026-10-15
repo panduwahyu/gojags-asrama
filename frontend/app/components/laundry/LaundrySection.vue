@@ -24,6 +24,11 @@ async function updateStatus(order: LaundryOrder, input: LaundryStatusInput) {
   await action.run(() => api.patch(`laundry-orders/${order.id}`, input))
   await table.refresh()
 }
+
+async function cancel(order: LaundryOrder) {
+  await action.run(() => api.patch(`laundry-orders/${order.id}/cancel`))
+  await table.refresh()
+}
 </script>
 
 <template>
@@ -47,6 +52,7 @@ async function updateStatus(order: LaundryOrder, input: LaundryStatusInput) {
       :busy="action.busy.value"
       :admin="isAdmin"
       @save="updateStatus"
+      @cancel="cancel"
     />
   </div>
 </template>

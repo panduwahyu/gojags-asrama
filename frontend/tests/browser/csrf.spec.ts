@@ -34,6 +34,6 @@ test('mengirim header X-CSRF-TOKEN dan mengulang sekali saat menerima 419', asyn
   await section.getByLabel('Isi keluhan').fill(sampleComplaint().body)
   await section.getByRole('button', { name: 'Kirim keluhan' }).click()
 
-  await expect(section.getByRole('status')).toContainText('Keluhan berhasil dikirim.')
+  await expect(section.getByRole('status')).toContainText(MESSAGES.COMPLAINT_SENT)
   expect(postAttempts).toBe(2)
 })

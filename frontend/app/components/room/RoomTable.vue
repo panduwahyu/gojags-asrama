@@ -4,6 +4,11 @@ import { ROOM_TONE } from '~/types/room'
 
 defineProps<{
   table: ReturnType<typeof useTable<Room, RoomsResponse>>
+  busy: boolean
+}>()
+
+const emit = defineEmits<{
+  toggle: [room: Room]
 }>()
 
 const columns = [
@@ -12,6 +17,7 @@ const columns = [
   { key: 'resident', label: 'Penghuni', sortable: true },
   { key: 'assigned_count', label: 'Kapasitas', sortable: true },
   { key: 'status', label: 'Status', sortable: true },
+  { key: 'actions', label: 'Aksi' },
 ]
 </script>
 
@@ -25,6 +31,7 @@ const columns = [
       :columns="columns"
       search-label="Cari kamar"
       empty-text="Kamar tidak ditemukan."
+      export-path="rooms/export"
     >
       <template #number="{ row }">
         <span class="font-semibold">{{ row.number }}</span>
@@ -63,6 +70,18 @@ const columns = [
         <StatusBadge :tone="ROOM_TONE[row.status]">
           {{ row.status_label }}
         </StatusBadge>
+      </template>
+
+      <template #actions="{ row }">
+        <button
+          type="button"
+          class="btn-secondary btn-sm whitespace-nowrap"
+          :disabled="busy"
+          :aria-label="`${row.is_active ? 'Nonaktifkan' : 'Aktifkan'} kamar ${row.number}`"
+          @click="emit('toggle', row)"
+        >
+          {{ row.is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+        </button>
       </template>
     </DataTable>
   </section>

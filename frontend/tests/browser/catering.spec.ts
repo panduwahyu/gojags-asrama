@@ -33,7 +33,7 @@ test('admin menambah menu catering: permintaan memuat dish_name dan meal_time', 
   await page.getByLabel('Waktu catering (WIB)').fill('2026-10-13T12:00')
   await page.getByRole('button', { name: 'Tambah menu' }).click()
 
-  await expect(page.getByRole('status')).toContainText('Menu catering berhasil ditambahkan.')
+  await expect(page.getByRole('status')).toContainText(MESSAGES.CATERING_ADDED)
   const tableSection = page.getByRole('region', { name: 'Menu catering' })
   const newRow = tableSection.getByRole('row', { name: /Ayam Bakar Madu/ })
   await expect(newRow).toBeVisible()
@@ -68,7 +68,7 @@ test('admin menekan Edit pada satu menu: formulir terisi dan permintaan PATCH te
   await page.getByLabel('Nama makanan').fill('Soto Ayam Spesial')
   await page.getByRole('button', { name: 'Simpan perubahan' }).click()
 
-  await expect(page.getByRole('status')).toContainText('Menu catering berhasil diperbarui.')
+  await expect(page.getByRole('status')).toContainText(MESSAGES.CATERING_UPDATED)
   expect(patchPayload).toMatchObject({ dish_name: 'Soto Ayam Spesial' })
 })
 
@@ -104,7 +104,7 @@ test('admin menekan Hapus: konfirmasi dua langkah dan permintaan DELETE terkirim
   await tableSection.getByRole('button', { name: 'Hapus' }).click()
   await tableSection.getByRole('button', { name: 'Ya, hapus' }).click()
 
-  await expect(page.getByRole('status')).toContainText('Menu catering berhasil dihapus.')
+  await expect(page.getByRole('status')).toContainText(MESSAGES.CATERING_DELETED)
   expect(deleteCalled).toBe(true)
 })
 
@@ -167,7 +167,7 @@ test('penghuni memberi rating menu catering', async ({ asResident: page }) => {
   await tableSection.getByLabel('Rating untuk Menu 3').selectOption('5')
   await tableSection.getByRole('button', { name: 'Simpan rating' }).click()
 
-  await expect(page.getByRole('status')).toContainText('Rating catering berhasil disimpan.')
+  await expect(page.getByRole('status')).toContainText(MESSAGES.CATERING_RATED)
   await expect(tableSection.getByRole('row', { name: /5 \/ 5 ★/ })).toBeVisible()
 })
 
@@ -189,7 +189,7 @@ test('pesan error server saat rating ditolak tampil di layar', async ({ asReside
   await tableSection.getByLabel('Rating untuk Menu 3').selectOption('5')
   await tableSection.getByRole('button', { name: 'Simpan rating' }).click()
 
-  await expect(page.getByRole('alert')).toContainText('Masa penilaian menu ini sudah berakhir.')
+  await expect(page.getByRole('alert')).toContainText(MESSAGES.CATERING_RATING_CLOSED)
 })
 
 test('menampilkan pesan error server saat penambahan menu gagal', async ({ asAdmin: page }) => {
