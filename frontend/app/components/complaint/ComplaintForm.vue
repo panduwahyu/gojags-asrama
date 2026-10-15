@@ -34,19 +34,19 @@ function send() {
       </h3>
     </div>
 
-    <label>
-      Judul keluhan
+    <FormField label="Judul keluhan" for="complaint-title">
       <input
+        id="complaint-title"
         v-model="form.title"
         maxlength="150"
         required
         placeholder="Contoh: AC kurang dingin / kran bocor"
         :disabled="busy"
       >
-    </label>
-    <label>
-      Isi keluhan
+    </FormField>
+    <FormField label="Isi keluhan" for="complaint-body">
       <textarea
+        id="complaint-body"
         v-model="form.body"
         rows="3"
         maxlength="2000"
@@ -54,7 +54,7 @@ function send() {
         placeholder="Jelaskan keluhan dan lokasi detail yang perlu ditangani."
         :disabled="busy"
       />
-    </label>
+    </FormField>
     <button
       class="btn"
       :disabled="busy"

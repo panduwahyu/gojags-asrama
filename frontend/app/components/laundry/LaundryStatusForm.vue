@@ -53,8 +53,9 @@ function handleSubmit() {
         min="0"
         max="9999999999.99"
         step="0.01"
-        required
+        :required="status === 'done'"
         :disabled="busy"
+        placeholder="Wajib bila status Selesai"
         :aria-label="`Biaya laundry ${order.user_name}`"
       >
     </label>

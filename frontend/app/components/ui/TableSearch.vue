@@ -30,13 +30,15 @@ const emit = defineEmits<{
       <button
         class="btn py-2.5!"
         :disabled="loading"
+        :aria-busy="loading"
       >
         Cari
       </button>
       <button
         v-if="search"
         type="button"
-        class="btn-text px-2"
+        class="btn-text rounded-lg px-2 py-1.5 focus-visible:outline-hidden focus-visible:ring-2
+          focus-visible:ring-indigo-500"
         @click="emit('reset')"
       >
         Reset

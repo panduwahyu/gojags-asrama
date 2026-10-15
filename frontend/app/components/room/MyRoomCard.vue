@@ -107,5 +107,18 @@ async function transition(kind: 'check-in' | 'check-out') {
         Hubungi admin untuk penempatan kamar.
       </p>
     </section>
+
+    <section
+      v-else
+      aria-label="Memuat kamar"
+      class="card mt-6 animate-pulse p-6 md:p-8"
+    >
+      <div class="h-6 w-32 rounded-lg bg-slate-200 dark:bg-slate-800/80" />
+      <div class="mt-4 h-9 w-48 rounded-lg bg-slate-200 dark:bg-slate-800/80" />
+      <div class="mt-6 flex gap-3">
+        <div class="h-11 w-28 rounded-xl bg-slate-200 dark:bg-slate-800/80" />
+        <div class="h-11 w-28 rounded-xl bg-slate-200 dark:bg-slate-800/80" />
+      </div>
+    </section>
   </div>
 </template>

@@ -31,19 +31,19 @@ const RELIGIONS = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu']
       </span>
     </div>
     <div class="grid gap-4 sm:grid-cols-3">
-      <label>
-        Angkatan
+      <FormField label="Angkatan" :for="`cohort-${resident.id}`">
         <input
+          :id="`cohort-${resident.id}`"
           v-model="resident.cohort"
           maxlength="100"
           required
           :aria-label="`Angkatan ${resident.name}`"
           :disabled="busy || Boolean(resident.room_id)"
         >
-      </label>
-      <label>
-        Gender
+      </FormField>
+      <FormField label="Gender" :for="`gender-${resident.id}`">
         <select
+          :id="`gender-${resident.id}`"
           v-model="resident.gender"
           required
           :aria-label="`Gender ${resident.name}`"
@@ -59,18 +59,25 @@ const RELIGIONS = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu']
             Perempuan
           </option>
         </select>
-      </label>
-      <label>
-        Agama
+      </FormField>
+      <FormField label="Agama" :for="`religion-${resident.id}`">
         <input
+          :id="`religion-${resident.id}`"
           v-model="resident.religion"
           maxlength="50"
           required
-          list="religion-options"
+          :list="`agama-options-${resident.id}`"
           :aria-label="`Agama ${resident.name}`"
           :disabled="busy || Boolean(resident.room_id)"
         >
-      </label>
+        <datalist :id="`agama-options-${resident.id}`">
+          <option
+            v-for="opt in RELIGIONS"
+            :key="opt"
+            :value="opt"
+          />
+        </datalist>
+      </FormField>
     </div>
     <button
       v-if="!resident.room_id"

@@ -130,8 +130,10 @@ async function login() {
           class="mt-3 inline-flex items-center justify-center gap-2.5 rounded-2xl bg-indigo-600 px-7 py-3.5
             text-sm font-semibold text-white shadow-[0_0_28px_rgba(79,70,229,0.55)] transition-all
             hover:bg-indigo-500 hover:shadow-[0_0_36px_rgba(79,70,229,0.7)] active:scale-[0.99]
-            disabled:opacity-50"
+            focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500
+            focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 disabled:opacity-50"
           :disabled="action.busy.value"
+          :aria-busy="action.busy.value"
         >
           <AppIcon name="login" class="size-4" />
           <span>{{ action.busy.value ? 'Memproses…' : 'Masuk Aplikasi' }}</span>

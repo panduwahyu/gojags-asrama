@@ -80,7 +80,22 @@ function cellText(row: T, key: string): string {
               </slot>
             </td>
           </tr>
-          <tr v-if="!table.rows.value.length && !table.loading.value">
+          <template v-if="!table.rows.value.length && table.loading.value">
+            <tr
+              v-for="n in 3"
+              :key="`skeleton-${n}`"
+              class="animate-pulse"
+            >
+              <td
+                v-for="col in columns"
+                :key="col.key"
+                class="px-4 py-3.5"
+              >
+                <div class="h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-700/60" />
+              </td>
+            </tr>
+          </template>
+          <tr v-else-if="!table.rows.value.length">
             <td
               :colspan="columns.length"
               class="p-8 text-center"

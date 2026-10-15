@@ -71,7 +71,7 @@ function onDelete(menu: CateringMenu) {
       <template #rating_average="{ row }">
         <span
           v-if="row.rating_average !== null"
-          class="whitespace-nowrap font-semibold text-amber-500 dark:text-amber-400"
+          class="whitespace-nowrap font-semibold text-amber-700 dark:text-amber-400"
         >
           {{ row.rating_average.toLocaleString('id-ID', { maximumFractionDigits: 2 }) }} / 5 ★
         </span>
@@ -86,7 +86,7 @@ function onDelete(menu: CateringMenu) {
       <template #my_rating="{ row }">
         <span
           class="whitespace-nowrap"
-          :class="row.my_rating ? 'font-semibold text-amber-500 dark:text-amber-400' : ''"
+          :class="row.my_rating ? 'font-semibold text-amber-700 dark:text-amber-400' : ''"
         >
           {{ row.my_rating ? `${row.my_rating} / 5 ★` : 'Belum menilai' }}
         </span>

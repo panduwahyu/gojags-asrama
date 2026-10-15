@@ -14,8 +14,8 @@ const open = ref(false)
 const menus = computed(() => menusFor(user.value?.role))
 
 const toggleButtonClass = [
-  'fixed right-4 top-4 z-50 rounded-xl border border-indigo-200 bg-indigo-50',
-  'px-3 py-2 text-indigo-700 lg:hidden',
+  'fixed right-4 top-4 z-50 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl',
+  'border border-indigo-200 bg-indigo-50 px-3 py-2 text-indigo-700 lg:hidden',
   'dark:border-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300',
 ].join(' ')
 
@@ -66,7 +66,7 @@ watch(() => route.path, () => {
       aria-label="Buka navigasi"
       @click="open = !open"
     >
-      ☰
+      <AppIcon :name="open ? 'close' : 'menu'" class="size-5" />
     </button>
     <button
       v-if="open"
@@ -129,7 +129,7 @@ watch(() => route.path, () => {
           :disabled="action.busy.value"
           @click="logout"
         >
-          <AppIcon name="login" class="size-4" />
+          <AppIcon name="logout" class="size-4" />
           Logout
         </button>
       </div>

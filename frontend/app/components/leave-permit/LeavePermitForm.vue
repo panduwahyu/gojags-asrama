@@ -47,30 +47,30 @@ function submit() {
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2">
-      <label>
-        Waktu keluar (WIB)
+      <FormField label="Waktu keluar (WIB)" for="permit-leaves-at">
         <input
+          id="permit-leaves-at"
           v-model="form.leavesAt"
           type="datetime-local"
           required
           :disabled="busy"
         >
-      </label>
-      <label>
-        Waktu kembali (WIB)
+      </FormField>
+      <FormField label="Waktu kembali (WIB)" for="permit-returns-at">
         <input
+          id="permit-returns-at"
           v-model="form.returnsAt"
           type="datetime-local"
           required
           :min="form.leavesAt || undefined"
           :disabled="busy"
         >
-      </label>
+      </FormField>
     </div>
 
-    <label>
-      Alasan
+    <FormField label="Alasan" for="permit-reason">
       <textarea
+        id="permit-reason"
         v-model="form.reason"
         rows="3"
         maxlength="2000"
@@ -78,7 +78,7 @@ function submit() {
         :disabled="busy"
         placeholder="Tuliskan keperluan keluar asrama..."
       />
-    </label>
+    </FormField>
 
     <div class="flex items-center gap-3 pt-1">
       <button

@@ -42,9 +42,9 @@ function handleSubmit() {
       class="mt-6 space-y-4"
       @submit.prevent="handleSubmit"
     >
-      <label>
-        Pakaian / barang yang dilaundry
+      <FormField label="Pakaian / barang yang dilaundry" for="laundry-items">
         <textarea
+          id="laundry-items"
           v-model="form.items"
           required
           maxlength="255"
@@ -55,10 +55,10 @@ function handleSubmit() {
             focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-800
             dark:bg-slate-900/90 dark:text-slate-100 dark:focus:border-indigo-500"
         />
-      </label>
-      <label>
-        Jumlah stel
+      </FormField>
+      <FormField label="Jumlah stel" for="laundry-set-count">
         <input
+          id="laundry-set-count"
           v-model="form.set_count"
           type="number"
           min="1"
@@ -67,7 +67,7 @@ function handleSubmit() {
           required
           :disabled="busy"
         >
-      </label>
+      </FormField>
       <button
         class="btn mt-2"
         :disabled="busy"

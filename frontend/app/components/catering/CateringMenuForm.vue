@@ -66,9 +66,9 @@ function handleSubmit() {
       @submit.prevent="handleSubmit"
     >
       <div class="grid gap-4 sm:grid-cols-3">
-        <label>
-          Nomor menu
+        <FormField label="Nomor menu" for="catering-menu-number">
           <input
+            id="catering-menu-number"
             v-model="form.menu_number"
             type="number"
             min="1"
@@ -77,20 +77,20 @@ function handleSubmit() {
             required
             :disabled="busy"
           >
-        </label>
-        <label>
-          Nama makanan
+        </FormField>
+        <FormField label="Nama makanan" for="catering-dish-name">
           <input
+            id="catering-dish-name"
             v-model="form.dish_name"
             maxlength="255"
             required
             :disabled="busy"
             placeholder="Contoh: Ayam Bakar Madu"
           >
-        </label>
-        <label>
-          Waktu makan
+        </FormField>
+        <FormField label="Waktu makan" for="catering-meal-time">
           <select
+            id="catering-meal-time"
             v-model="form.meal_time"
             required
             :disabled="busy"
@@ -99,28 +99,28 @@ function handleSubmit() {
             <option value="lunch">Siang</option>
             <option value="dinner">Malam</option>
           </select>
-        </label>
+        </FormField>
       </div>
 
       <div class="grid gap-4 sm:grid-cols-2">
-        <label>
-          Penyedia
+        <FormField label="Penyedia" for="catering-provider">
           <input
+            id="catering-provider"
             v-model="form.provider"
             maxlength="255"
             required
             :disabled="busy"
           >
-        </label>
-        <label>
-          Waktu catering (WIB)
+        </FormField>
+        <FormField label="Waktu catering (WIB)" for="catering-served-at">
           <input
+            id="catering-served-at"
             v-model="form.served_at"
             type="datetime-local"
             required
             :disabled="busy"
           >
-        </label>
+        </FormField>
       </div>
 
       <div class="flex items-center gap-3 pt-2">

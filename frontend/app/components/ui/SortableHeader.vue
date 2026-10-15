@@ -19,11 +19,11 @@ function ariaSort(column: string): 'ascending' | 'descending' | 'none' {
   return props.direction === 'asc' ? 'ascending' : 'descending'
 }
 
-function sortIndicator(column: string): string {
+function sortIcon(column: string): string {
   if (props.sort !== column) {
-    return '↕'
+    return 'sort-none'
   }
-  return props.direction === 'asc' ? '▲' : '▼'
+  return props.direction === 'asc' ? 'sort-asc' : 'sort-desc'
 }
 </script>
 
@@ -43,14 +43,20 @@ function sortIndicator(column: string): string {
         <button
           v-if="col.sortable"
           type="button"
-          class="flex items-center gap-2 text-left font-semibold hover:text-indigo-600 dark:hover:text-indigo-400"
+          class="flex items-center gap-1.5 text-left font-semibold transition hover:text-indigo-600
+            focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500
+            dark:hover:text-indigo-400"
           :disabled="loading"
           @click="emit('sort', col.key)"
         >
           <span>{{ col.label }}</span>
-          <span aria-hidden="true" class="text-[10px] text-slate-400">
-            {{ sortIndicator(col.key) }}
-          </span>
+          <AppIcon
+            :name="sortIcon(col.key)"
+            class="size-3.5 transition-colors"
+            :class="props.sort === col.key
+              ? 'text-indigo-600 dark:text-indigo-400'
+              : 'text-slate-400 opacity-60'"
+          />
         </button>
         <span v-else>{{ col.label }}</span>
       </th>

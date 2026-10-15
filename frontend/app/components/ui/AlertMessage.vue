@@ -26,7 +26,7 @@ const successClass = [
     role="alert"
     :class="errorClass"
   >
-    <span class="mt-0.5 text-sm leading-none">⚠️</span>
+    <AppIcon name="warning" class="mt-0.5 size-5 shrink-0" />
     <div class="flex-1">
       <span>{{ error }}</span>
       <button
@@ -44,7 +44,7 @@ const successClass = [
     role="status"
     :class="successClass"
   >
-    <span class="mt-0.5 text-sm leading-none font-bold">✓</span>
+    <AppIcon name="check" class="mt-0.5 size-5 shrink-0" />
     <div class="flex-1">
       {{ success }}
     </div>

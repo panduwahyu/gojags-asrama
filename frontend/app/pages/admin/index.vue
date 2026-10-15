@@ -73,12 +73,11 @@ const services = [
             {{ status === 'pending' ? '…' : (data?.data[item.key] ?? '—') }}
           </strong>
         </div>
-        <span
-          class="text-slate-400 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5
+        <AppIcon
+          name="external"
+          class="size-4 text-slate-400 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5
             group-hover:text-indigo-600 dark:text-slate-500 dark:group-hover:text-indigo-400"
-        >
-          ↗
-        </span>
+        />
       </NuxtLink>
     </section>
   </div>
