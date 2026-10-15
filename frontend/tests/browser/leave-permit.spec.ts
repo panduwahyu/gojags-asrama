@@ -1,4 +1,5 @@
 import { expect, test } from '../support/fixtures'
+import { MESSAGES } from '../support/messages'
 import { CSRF_TOKEN, mockTable } from '../support/mock-api'
 import { sampleLeavePermit } from '../support/samples'
 
@@ -11,7 +12,7 @@ test('penghuni mengajukan izin dan waktu dikirim sebagai UTC', async ({ asReside
     expect(request.headers()['x-csrf-token']).toBe(CSRF_TOKEN)
     expect(request.postDataJSON().leaves_at).toBe('2026-10-13T01:00:00.000Z')
     permits.unshift(sampleLeavePermit({ reason: 'Mengunjungi keluarga' }))
-    await route.fulfill({ status: 201, json: { message: 'Izin keluar berhasil diajukan.' } })
+    await route.fulfill({ status: 201, json: { message: MESSAGES.PERMIT_SENT } })
   })
 
   await page.goto('/resident/room')
@@ -33,7 +34,7 @@ test('penghuni mengedit izin yang masih berstatus Diajukan', async ({ asResident
     expect(route.request().method()).toBe('PATCH')
     expect(route.request().postDataJSON().reason).toBe('Alasan diperbarui')
     permit.reason = 'Alasan diperbarui'
-    await route.fulfill({ json: { message: 'Pengajuan izin keluar berhasil diperbarui.' } })
+    await route.fulfill({ json: { message: MESSAGES.PERMIT_UPDATED } })
   })
 
   await page.goto('/resident/room')
@@ -54,7 +55,7 @@ test('admin meninjau izin keluar dan memperbarui status baris', async ({ asAdmin
     expect(route.request().postDataJSON()).toEqual({ status: 'approved' })
     permit.status = 'approved'
     permit.status_label = 'Disetujui'
-    await route.fulfill({ json: { message: 'Izin keluar berhasil disetujui.' } })
+    await route.fulfill({ json: { message: MESSAGES.PERMIT_APPROVED } })
   })
 
   await page.goto('/admin/rooms')

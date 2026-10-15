@@ -59,7 +59,7 @@ function handleSubmit() {
       >
     </label>
     <button
-      class="btn"
+      class="btn py-2! text-xs"
       :disabled="busy"
     >
       Simpan

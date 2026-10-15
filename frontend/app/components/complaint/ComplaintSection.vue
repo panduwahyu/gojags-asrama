@@ -32,13 +32,6 @@ async function resolve(complaint: Complaint) {
     <h2 class="section-title">
       Keluhan asrama
     </h2>
-    <p class="muted mt-2">
-      {{
-        isAdmin
-          ? 'Tinjau keluhan penghuni dan tandai Resolved setelah ditangani.'
-          : 'Sampaikan keluhan terkait asrama, lalu pantau status penanganannya di bawah.'
-      }}
-    </p>
 
     <AlertMessage
       :error="action.error.value"

@@ -1,4 +1,5 @@
 import { expect, test } from '../support/fixtures'
+import { MESSAGES } from '../support/messages'
 import { mockTable } from '../support/mock-api'
 import { sampleComplaint } from '../support/samples'
 
@@ -12,7 +13,7 @@ test('penghuni mengirim keluhan baru dan tabel diperbarui', async ({ asResident:
       body: 'Kran kamar mandi menetes terus.',
     })
     complaints.unshift(sampleComplaint({ title: 'Kran bocor', body: 'Kran kamar mandi menetes terus.' }))
-    await route.fulfill({ status: 201, json: { message: 'Keluhan berhasil dikirim.' } })
+    await route.fulfill({ status: 201, json: { message: MESSAGES.COMPLAINT_SENT } })
   })
 
   await page.goto('/resident/room')
@@ -34,7 +35,7 @@ test('admin menandai keluhan Resolved', async ({ asAdmin: page }) => {
     complaint.status = 'resolved'
     complaint.status_label = 'Resolved'
     complaint.resolved_at = '2026-10-13T06:00:00.000000Z'
-    await route.fulfill({ json: { message: 'Keluhan berhasil ditandai selesai.' } })
+    await route.fulfill({ json: { message: MESSAGES.COMPLAINT_RESOLVED } })
   })
 
   await page.goto('/admin/rooms')

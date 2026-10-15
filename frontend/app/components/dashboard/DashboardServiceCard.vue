@@ -32,16 +32,16 @@ defineProps<{
       <p class="overline">
         {{ overline }}
       </p>
-      <h3 class="mt-3 text-sm font-bold">
+      <h3 class="mt-2 text-sm font-bold text-slate-900 dark:text-white">
         {{ title }}
       </h3>
-      <p class="mt-3 min-h-14 text-xs leading-6 text-slate-500 dark:text-slate-400">
+      <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
         {{ description }}
       </p>
       <div
         class="mt-5 flex items-center justify-between border-t border-slate-100
-          pt-4 text-xs font-semibold text-orange-600 dark:border-slate-800
-          dark:text-orange-400"
+          pt-4 text-xs font-semibold text-indigo-600 dark:border-slate-800
+          dark:text-indigo-400"
       >
         {{ linkLabel }}
         <AppIcon name="arrow" />

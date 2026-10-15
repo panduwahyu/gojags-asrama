@@ -26,7 +26,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo('/login', { replace: true })
   }
 
-  if (to.meta.role && to.meta.role !== user.value.role) {
+  const required = requiredRole(to.path)
+  if (required && required !== user.value.role) {
     return navigateTo(home, { replace: true })
   }
 })

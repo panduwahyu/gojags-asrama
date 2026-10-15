@@ -23,3 +23,13 @@ const RESIDENT_MENUS: NavItem[] = [
 export function menusFor(role?: Role): NavItem[] {
   return role === 'admin' ? ADMIN_MENUS : RESIDENT_MENUS
 }
+
+export function requiredRole(path: string): Role | null {
+  if (path === '/admin' || path.startsWith('/admin/')) {
+    return 'admin'
+  }
+  if (path === '/resident' || path.startsWith('/resident/')) {
+    return 'resident'
+  }
+  return null
+}

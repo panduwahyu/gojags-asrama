@@ -1,4 +1,5 @@
 import { expect, test } from '../support/fixtures'
+import { MESSAGES } from '../support/messages'
 import { sampleStay } from '../support/samples'
 import type { MyRoomData } from '~/types/room'
 
@@ -21,7 +22,7 @@ test('penghuni melakukan check-in lalu check-out dan riwayat diperbarui', async 
       room: { number: '501', floor: 5, checked_in_at: '2026-10-13T02:00:00.000000Z' },
       stays: [sampleStay({ room_number: '501', floor: 5, checked_out_at: null })],
     }
-    await route.fulfill({ json: { message: 'Check-in berhasil.' } })
+    await route.fulfill({ json: { message: MESSAGES.CHECK_IN_SUCCESS } })
   })
   await page.route('**/api/my-room/check-out', async (route) => {
     expect(route.request().method()).toBe('POST')
@@ -35,7 +36,7 @@ test('penghuni melakukan check-in lalu check-out dan riwayat diperbarui', async 
         }),
       ],
     }
-    await route.fulfill({ json: { message: 'Check-out berhasil. Slot kamar telah dilepaskan.' } })
+    await route.fulfill({ json: { message: MESSAGES.CHECK_OUT_SUCCESS } })
   })
 
   await page.goto('/resident/room')
@@ -61,7 +62,7 @@ test('menampilkan pesan error server saat check-in gagal', async ({ asResident: 
   await page.route('**/api/my-room/check-in', route =>
     route.fulfill({
       status: 422,
-      json: { message: 'Anda sudah melakukan check-in.' },
+      json: { message: MESSAGES.ALREADY_CHECKED_IN },
     }),
   )
 

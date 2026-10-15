@@ -1,4 +1,5 @@
 import { expect, test } from '../support/fixtures'
+import { MESSAGES } from '../support/messages'
 import { mockTable } from '../support/mock-api'
 import { sampleCateringMenu } from '../support/samples'
 
@@ -21,7 +22,7 @@ test('admin menambah menu catering: permintaan memuat dish_name dan meal_time', 
       meal_time_label: 'Siang',
       provider: 'Sari Rasa',
     }))
-    await route.fulfill({ status: 201, json: { message: 'Menu catering berhasil ditambahkan.' } })
+    await route.fulfill({ status: 201, json: { message: MESSAGES.CATERING_ADDED } })
   })
 
   await page.goto('/admin/catering')
@@ -56,7 +57,7 @@ test('admin menekan Edit pada satu menu: formulir terisi dan permintaan PATCH te
     expect(route.request().method()).toBe('PATCH')
     patchPayload = route.request().postDataJSON()
     menu.dish_name = 'Soto Ayam Spesial'
-    await route.fulfill({ json: { message: 'Menu catering berhasil diperbarui.' } })
+    await route.fulfill({ json: { message: MESSAGES.CATERING_UPDATED } })
   })
 
   await page.goto('/admin/catering')
@@ -81,7 +82,7 @@ test('admin menekan Hapus: konfirmasi dua langkah dan permintaan DELETE terkirim
     if (route.request().method() === 'DELETE') {
       deleteCalled = true
       menus = []
-      await route.fulfill({ json: { message: 'Menu catering berhasil dihapus.' } })
+      await route.fulfill({ json: { message: MESSAGES.CATERING_DELETED } })
       return
     }
     await route.fallback()
@@ -158,7 +159,7 @@ test('penghuni memberi rating menu catering', async ({ asResident: page }) => {
     menu.my_rating = 5
     menu.rating_average = 5
     menu.rating_count = 1
-    await route.fulfill({ json: { message: 'Rating catering berhasil disimpan.' } })
+    await route.fulfill({ json: { message: MESSAGES.CATERING_RATED } })
   })
 
   await page.goto('/resident/catering')
@@ -177,7 +178,7 @@ test('pesan error server saat rating ditolak tampil di layar', async ({ asReside
     await route.fulfill({
       status: 422,
       json: {
-        message: 'Masa penilaian menu ini sudah berakhir.',
+        message: MESSAGES.CATERING_RATING_CLOSED,
         errors: { rating: ['Masa penilaian menu ini sudah berakhir.'] },
       },
     })

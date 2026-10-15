@@ -11,6 +11,7 @@ class CateringRating extends Model
     use HasFactory;
 
     protected $fillable = [
+        'catering_menu_id',
         'user_id',
         'rating',
     ];

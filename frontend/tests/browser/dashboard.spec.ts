@@ -1,4 +1,5 @@
 import { expect, test } from '../support/fixtures'
+import { MESSAGES } from '../support/messages'
 
 test('beranda admin menampilkan ringkasan hitungan dari endpoint dashboard', async ({ asAdmin: page }) => {
   await page.route('**/api/dashboard', route =>
@@ -18,7 +19,7 @@ test('beranda penghuni menampilkan nama dari sesi tanpa memanggil endpoint dashb
   let dashboardCalled = false
   await page.route('**/api/dashboard', (route) => {
     dashboardCalled = true
-    return route.fulfill({ status: 403, json: { message: 'Forbidden' } })
+    return route.fulfill({ status: 403, json: { message: MESSAGES.FORBIDDEN } })
   })
 
   await page.goto('/resident')

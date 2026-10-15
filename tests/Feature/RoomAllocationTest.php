@@ -251,15 +251,17 @@ class RoomAllocationTest extends TestCase
         ]);
 
         $room4 = Room::factory()->create(['number' => '401', 'floor' => 4]);
+        $cohort62Male = User::factory()->resident()->profiled('62', Gender::Male, 'islam')->create();
         $room4->slots()->createMany([
             ['position' => 1, 'user_id' => $user4->id],
-            ['position' => 2, 'user_id' => User::factory()->resident()->profiled('62', Gender::Male, 'islam')->create()->id],
+            ['position' => 2, 'user_id' => $cohort62Male->id],
         ]);
 
         $room3 = Room::factory()->create(['number' => '301', 'floor' => 3]);
+        $cohort63Male = User::factory()->resident()->profiled('63', Gender::Male, 'islam')->create();
         $room3->slots()->createMany([
             ['position' => 1, 'user_id' => $user3->id],
-            ['position' => 2, 'user_id' => User::factory()->resident()->profiled('63', Gender::Male, 'islam')->create()->id],
+            ['position' => 2, 'user_id' => $cohort63Male->id],
         ]);
 
         User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create();

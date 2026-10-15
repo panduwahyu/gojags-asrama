@@ -1,0 +1,187 @@
+{
+  "apps": [
+    {
+      "title": "GOJAGS Classroom",
+      "desc": "Platform pembelajaran online yang menyajikan berbagai materi pelatihan, pengetahuan, dan webinar yang dapat diakses oleh seluruh pegawai Badan Pusat Statistik dan masyarakat umum.",
+      "tag": "Eksternal",
+      "status": "Active",
+      "link": "https://gojags-classroom.bps.go.id/"
+    },
+    {
+      "title": "GOJAGS Training",
+      "desc": "Platform layanan teknologi informasi terintegrasi milik Pusat Pendidikan dan Pelatihan BPS yang siap membantu Anda dalam mengelola pengembangan diri",
+      "tag": "Eksternal",
+      "status": "Active",
+      "link": "https://gojags-training.bps.go.id/"
+    },
+    {
+      "title": "GOJAGS Prime",
+      "desc": "Dashboard eksekutif manajemen talenta dengan visualisasi data strategis.",
+      "tag": "Eksternal",
+      "status": "Development",
+      "link": ""
+    },
+    {
+      "title": "GOJAGS Office",
+      "desc": "Sistem Back office Pusdiklat BPS.",
+      "tag": "Internal",
+      "status": "Active",
+      "link": "https://gojags-office.etc-nso.id/"
+    },
+    {
+      "title": "GOJAGS Edu",
+      "desc": "Platform pembelajaran dan pelatihan berbasis kompetensi untuk mendukung pengembangan sumber daya manusia di lingkungan BPS.",
+      "tag": "Eksternal",
+      "status": "Active",
+      "link": "https://gojags-educ.web.bps.go.id/"
+    },
+    {
+      "title": "Platform Akreditasi Pelatihan Prakom dan Statistisi",
+      "desc": "Sistem akreditasi untuk program pelatihan, tenaga Pengelola Teknologi Informasi (Prakom), dan Statistisi di lingkungan BPS.",
+      "tag": "Internal",
+      "status": "Active",
+      "link": "https://akreditasi.etc-nso.id/"
+    },
+    {
+      "title": "Lembaga Sertifikasi Profesi",
+      "desc": "Lembaga Sertifikasi Profesi BPS yang menyelenggarakan uji kompetensi dan penerbitan sertifikat profesi bagi tenaga statistik.",
+      "tag": "Eksternal",
+      "status": "Active",
+      "link": "https://lsp.web.bps.go.id/"
+    },
+    {
+      "title": "GOJAGS Library",
+      "desc": "Perpustakaan digital yang menyediakan koleksi referensi, jurnal, dan publikasi ilmiah untuk mendukung riset dan pengembangan kompetensi pegawai.",
+      "tag": "Eksternal",
+      "status": "Active",
+      "link": "https://gojags-lib.web.bps.go.id/"
+    },
+    {
+      "title": "Web Pusdiklat BPS",
+      "desc": "Portal resmi Pusat Pendidikan dan Pelatihan Badan Pusat Statistik.",
+      "tag": "Eksternal",
+      "status": "Active",
+      "link": "https://pusdiklat.bps.go.id/"
+    }
+  ],
+  "stats": [
+    {
+      "label": "Total Aplikasi",
+      "value": "9"
+    },
+    {
+      "label": "Kategori Layanan",
+      "value": "2"
+    },
+    {
+      "label": "Segera Hadir",
+      "value": "1"
+    }
+  ],
+  "externalLinks": [
+    {
+      "text": "Panduan Penggunaan Aplikasi GOJAGS",
+      "href": "https://panduangojags.my.canva.site/home"
+    },
+    {
+      "text": "Buka",
+      "href": "https://gojags-classroom.bps.go.id/"
+    },
+    {
+      "text": "Open GOJAGS Classroom",
+      "href": "https://gojags-classroom.bps.go.id/"
+    },
+    {
+      "text": "Buka",
+      "href": "https://gojags-training.bps.go.id/"
+    },
+    {
+      "text": "Open GOJAGS Training",
+      "href": "https://gojags-training.bps.go.id/"
+    },
+    {
+      "text": "Buka",
+      "href": "https://gojags-office.etc-nso.id/"
+    },
+    {
+      "text": "Open GOJAGS Office",
+      "href": "https://gojags-office.etc-nso.id/"
+    },
+    {
+      "text": "Buka",
+      "href": "https://gojags-educ.web.bps.go.id/"
+    },
+    {
+      "text": "Open GOJAGS Edu",
+      "href": "https://gojags-educ.web.bps.go.id/"
+    },
+    {
+      "text": "Buka",
+      "href": "https://akreditasi.etc-nso.id/"
+    },
+    {
+      "text": "Open Platform Akreditasi Pelatihan Prakom dan Statistisi",
+      "href": "https://akreditasi.etc-nso.id/"
+    },
+    {
+      "text": "Buka",
+      "href": "https://lsp.web.bps.go.id/"
+    },
+    {
+      "text": "Open Lembaga Sertifikasi Profesi",
+      "href": "https://lsp.web.bps.go.id/"
+    },
+    {
+      "text": "Buka",
+      "href": "https://gojags-lib.web.bps.go.id/"
+    },
+    {
+      "text": "Open GOJAGS Library",
+      "href": "https://gojags-lib.web.bps.go.id/"
+    },
+    {
+      "text": "Buka",
+      "href": "https://pusdiklat.bps.go.id/"
+    },
+    {
+      "text": "Open Web Pusdiklat BPS",
+      "href": "https://pusdiklat.bps.go.id/"
+    },
+    {
+      "text": "GET IT ON\nGoogle Play",
+      "href": "https://play.google.com/store"
+    },
+    {
+      "text": "",
+      "href": "https://maps.google.com/?q=Pusdiklat+Badan+Pusat+Statistik+RI"
+    },
+    {
+      "text": "Instagram",
+      "href": "https://instagram.com/pusdiklatbps"
+    },
+    {
+      "text": "YouTube",
+      "href": "https://youtube.com/pusdiklatbps"
+    },
+    {
+      "text": "Facebook",
+      "href": "https://facebook.com/pusdiklatbps"
+    },
+    {
+      "text": "X (Twitter)",
+      "href": "https://twitter.com/pusdiklatbps"
+    },
+    {
+      "text": "Pusdiklat BPS",
+      "href": "https://pusdiklat.bps.go.id/"
+    },
+    {
+      "text": "BPS RI",
+      "href": "https://bps.go.id/"
+    },
+    {
+      "text": "Halo Pusdiklat BPS",
+      "href": "https://wa.me/6221508066?text=Halo%20Pusdiklat%20BPS%2C%20saya%20ingin%20bertanya%20mengenai%20Portal%20GOJAGS."
+    }
+  ]
+}

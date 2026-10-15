@@ -31,28 +31,41 @@ async function transition(kind: 'check-in' | 'check-out') {
     <section
       v-if="room"
       aria-label="Kamar saya"
-      class="card mt-6 p-6"
+      class="card relative mt-6 overflow-hidden p-6 md:p-8"
     >
-      <h2 class="text-xl font-semibold">
-        Kamar {{ room.number }}
-      </h2>
-      <p class="muted mt-2">
-        Lantai {{ room.floor }}
-      </p>
-      <p class="mt-4 text-sm">
-        {{ room.checked_in_at ? 'Sudah check-in' : 'Assigned · Menunggu check-in' }}
-      </p>
-      <p
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-3">
+            <span
+              class="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-bold
+                text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300"
+            >
+              Lantai {{ room.floor }}
+            </span>
+            <StatusBadge :tone="room.checked_in_at ? 'success' : 'warning'">
+              {{ room.checked_in_at ? 'Sudah check-in' : 'Menunggu check-in' }}
+            </StatusBadge>
+          </div>
+          <h2 class="mt-3 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            Kamar {{ room.number }}
+          </h2>
+        </div>
+
+        <div class="hidden sm:flex size-16 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/40">
+          <AppIcon name="kamar" class="size-8 text-indigo-600 dark:text-indigo-400" />
+        </div>
+      </div>
+
+      <div
         v-if="room.checked_in_at"
-        class="muted mt-2 text-sm"
+        class="mt-5 rounded-xl border border-slate-100 bg-slate-50/70 p-4 text-xs text-slate-600
+          dark:border-slate-800/80 dark:bg-slate-900/60 dark:text-slate-300"
       >
-        Waktu check-in:
+        <span class="font-semibold text-slate-700 dark:text-slate-200">Waktu check-in: </span>
         <time :datetime="room.checked_in_at">{{ formatWib(room.checked_in_at, 'medium') }}</time>
-      </p>
-      <p class="muted mt-4 text-sm">
-        Check-out akan melepaskan alokasi kamar Anda dan menyimpan waktu keluar pada riwayat.
-      </p>
-      <div class="mt-5 flex gap-3">
+      </div>
+
+      <div class="mt-6 flex flex-wrap gap-3">
         <button
           type="button"
           class="btn"
@@ -63,7 +76,11 @@ async function transition(kind: 'check-in' | 'check-out') {
         </button>
         <button
           type="button"
-          class="btn"
+          class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200
+            bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-xs transition
+            hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600
+            disabled:opacity-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200
+            dark:hover:border-rose-900 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
           :disabled="action.busy.value || !room.checked_in_at"
           @click="transition('check-out')"
         >
@@ -75,9 +92,15 @@ async function transition(kind: 'check-in' | 'check-out') {
     <section
       v-else-if="loaded"
       aria-label="Kamar saya"
-      class="card mt-6 p-6"
+      class="card mt-6 p-8 text-center"
     >
-      <h2 class="font-semibold">
+      <div
+        class="mx-auto flex size-16 items-center justify-center rounded-2xl bg-slate-100
+          text-slate-400 dark:bg-slate-800/60 dark:text-slate-500"
+      >
+        <AppIcon name="kamar" class="size-8" />
+      </div>
+      <h2 class="mt-4 text-lg font-bold text-slate-900 dark:text-white">
         Belum ada alokasi kamar
       </h2>
       <p class="muted mt-2 text-sm">

@@ -1,4 +1,5 @@
 import { expect, test } from '../support/fixtures'
+import { MESSAGES } from '../support/messages'
 import { sampleComplaint } from '../support/samples'
 
 test('mengirim header X-CSRF-TOKEN dan mengulang sekali saat menerima 419', async ({ asResident: page }) => {
@@ -24,7 +25,7 @@ test('mengirim header X-CSRF-TOKEN dan mengulang sekali saat menerima 419', asyn
       return
     }
     expect(tokenHeader).toBe('token-baru')
-    await route.fulfill({ status: 201, json: { message: 'Keluhan berhasil dikirim.' } })
+    await route.fulfill({ status: 201, json: { message: MESSAGES.COMPLAINT_SENT } })
   })
 
   await page.goto('/resident/room')

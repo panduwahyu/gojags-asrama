@@ -56,7 +56,7 @@ const columns = computed(() => [
         <template v-if="admin">
           <button
             type="button"
-            class="btn py-2!"
+            class="btn py-1! px-2.5! text-xs font-semibold"
             :disabled="busy"
             @click="emit('review', row, 'approved')"
           >
@@ -64,7 +64,7 @@ const columns = computed(() => [
           </button>
           <button
             type="button"
-            class="text-xs font-semibold text-red-600 dark:text-red-400"
+            class="btn-danger py-1! px-2.5! text-xs font-semibold"
             :disabled="busy"
             @click="emit('review', row, 'rejected')"
           >
@@ -74,7 +74,7 @@ const columns = computed(() => [
         <button
           v-else
           type="button"
-          class="text-xs font-semibold text-orange-600 dark:text-orange-400"
+          class="btn-secondary py-1! px-2.5! text-xs font-semibold"
           :disabled="busy"
           @click="emit('edit', row)"
         >

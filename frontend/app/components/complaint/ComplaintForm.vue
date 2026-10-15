@@ -24,15 +24,23 @@ function send() {
 
 <template>
   <form
-    class="mt-5 space-y-4"
+    class="mt-6 space-y-4 rounded-2xl border border-slate-100 bg-slate-50/70 p-5
+      dark:border-slate-800 dark:bg-slate-900/40"
     @submit.prevent="send"
   >
+    <div class="border-b border-slate-200/80 pb-3 dark:border-slate-800">
+      <h3 class="text-sm font-bold text-slate-900 dark:text-white">
+        Kirim keluhan baru
+      </h3>
+    </div>
+
     <label>
       Judul keluhan
       <input
         v-model="form.title"
         maxlength="150"
         required
+        placeholder="Contoh: AC kurang dingin / kran bocor"
         :disabled="busy"
       >
     </label>
@@ -40,10 +48,10 @@ function send() {
       Isi keluhan
       <textarea
         v-model="form.body"
-        rows="4"
+        rows="3"
         maxlength="2000"
         required
-        placeholder="Jelaskan keluhan dan lokasi yang perlu ditangani."
+        placeholder="Jelaskan keluhan dan lokasi detail yang perlu ditangani."
         :disabled="busy"
       />
     </label>

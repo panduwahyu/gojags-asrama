@@ -23,15 +23,23 @@ function handleSubmit() {
 </script>
 
 <template>
-  <section class="card mb-6 p-6">
-    <h2 class="text-xl font-semibold">
-      Ajukan laundry
-    </h2>
-    <p class="muted mt-2 text-sm">
-      Tuliskan pakaian atau barang yang akan dilaundry dan total jumlah stel.
-    </p>
+  <section class="card mb-6 p-6 md:p-8">
+    <div class="flex items-center gap-3.5">
+      <div
+        class="flex size-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600
+          dark:bg-indigo-950/50 dark:text-indigo-400"
+      >
+        <AppIcon name="laundry" class="size-6" />
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white">
+          Ajukan laundry
+        </h2>
+      </div>
+    </div>
+
     <form
-      class="mt-5 space-y-4"
+      class="mt-6 space-y-4"
       @submit.prevent="handleSubmit"
     >
       <label>
@@ -43,8 +51,9 @@ function handleSubmit() {
           rows="3"
           :disabled="busy"
           placeholder="Contoh: kemeja, celana, dan seragam"
-          class="rounded-lg border border-slate-200 bg-white p-3 outline-none
-            focus:border-orange-400 dark:border-slate-700 dark:bg-slate-800"
+          class="rounded-xl border border-slate-200 bg-white p-3 outline-none
+            focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:border-slate-800
+            dark:bg-slate-900/90 dark:text-slate-100 dark:focus:border-indigo-500"
         />
       </label>
       <label>
@@ -60,7 +69,7 @@ function handleSubmit() {
         >
       </label>
       <button
-        class="btn"
+        class="btn mt-2"
         :disabled="busy"
       >
         {{ busy ? 'Memproses...' : 'Ajukan laundry' }}

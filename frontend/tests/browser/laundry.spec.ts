@@ -1,4 +1,5 @@
 import { expect, test } from '../support/fixtures'
+import { MESSAGES } from '../support/messages'
 import { mockTable } from '../support/mock-api'
 import { sampleLaundryOrder } from '../support/samples'
 
@@ -12,7 +13,7 @@ test('penghuni mengajukan laundry baru dan tabel diperbarui', async ({ asResiden
       set_count: 2,
     })
     orders.unshift(sampleLaundryOrder({ items: 'Jaket dan handuk', set_count: 2 }))
-    await route.fulfill({ status: 201, json: { message: 'Pengajuan laundry berhasil dikirim.' } })
+    await route.fulfill({ status: 201, json: { message: MESSAGES.LAUNDRY_SENT } })
   })
 
   await page.goto('/resident/laundry')
@@ -34,7 +35,7 @@ test('admin memperbarui status dan biaya laundry', async ({ asAdmin: page }) => 
     order.status = 'done'
     order.status_label = 'Selesai'
     order.cost = '25000.00'
-    await route.fulfill({ json: { message: 'Status berhasil diperbarui.' } })
+    await route.fulfill({ json: { message: MESSAGES.LAUNDRY_STATUS_UPDATED } })
   })
 
   await page.goto('/admin/laundry')

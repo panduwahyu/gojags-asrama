@@ -1,4 +1,5 @@
 import { expect, test } from '../support/fixtures'
+import { MESSAGES } from '../support/messages'
 import { sampleLeavePermit } from '../support/samples'
 
 test('pencarian di-debounce 300 ms dan tombol Reset mengosongkan pencarian', async ({ asResident: page }) => {
@@ -85,7 +86,7 @@ test('menampilkan keadaan kosong dan tombol Coba lagi saat gagal memuat', async 
   let shouldFail = true
   await page.route('**/api/leave-permits?*', async (route) => {
     if (shouldFail) {
-      await route.fulfill({ status: 500, json: { message: 'Server error' } })
+      await route.fulfill({ status: 500, json: { message: MESSAGES.SERVER_ERROR } })
       return
     }
     await route.fulfill({

@@ -45,11 +45,18 @@ const columns = [
             }}
           </small>
         </div>
-        <span v-if="!row.residents.length">Belum ada penghuni</span>
+        <span
+          v-if="!row.residents.length"
+          class="muted text-xs"
+        >
+          Belum ada penghuni
+        </span>
       </template>
 
       <template #assigned_count="{ row }">
-        <span>{{ row.assigned_count }} / {{ row.capacity }}</span>
+        <span class="font-medium text-slate-700 dark:text-slate-300">
+          {{ row.assigned_count }} / {{ row.capacity }}
+        </span>
       </template>
 
       <template #status="{ row }">

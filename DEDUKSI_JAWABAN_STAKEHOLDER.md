@@ -1,6 +1,6 @@
 # Deduksi dari jawaban pemangku kepentingan
 
-Pendamping `PERTANYAAN_STAKEHOLDER.md`, **untuk tim pengembang** (tidak perlu diberikan ke pengisi).
+Pendamping `konfirmasi.md`, **untuk tim pengembang** (tidak perlu diberikan ke pengisi).
 Daftar awal berisi 44 pertanyaan; yang diberikan hanya 20. Dokumen ini menunjukkan bahwa 24 sisanya
 terjawab oleh salah satu dari tiga cara: tergabung ke pertanyaan lain, bisa disimpulkan dari jawaban,
 atau cukup diputuskan pengembang.
@@ -90,3 +90,76 @@ Periksa kombinasi ini saat menerima jawaban; bila bertentangan, tanyakan kembali
 | No. 14 "gratis" tetapi no. 19 meminta laporan biaya | Tanyakan maksud laporannya (jumlah stel, bukan rupiah?) |
 | No. 2 "tetap menunggu" dan no. 18 penghuni mendekati 156 | Daftar tunggu akan sering terjadi → jadikan daftar tunggu tersimpan |
 | No. 10 "hanya yang menginap" dan no. 9 "tidak pernah kembali" | Penghuni yang sudah check-out kehilangan akses izin, laundry, dan rating; konfirmasi akunnya dinonaktifkan |
+
+## 4. Taksonomi Aturan: Penolakan Mutlak dan Peringatan
+
+Bagian ini merumuskan taksonomi validasi antarmuka dan backend agar sistem bekerja secara terprediksi (*predictable*), tidak melakukan perubahan drastis secara diam-diam, dan membedakan secara tegas antara penolakan mutlak dengan konfirmasi peringatan.
+
+### A. Penolakan Mutlak oleh Sistem
+Tindakan berikut melanggar logika fisik asrama, norma dasar, atau integritas data. Sistem menolak permintaan dengan pesan validasi yang jelas:
+
+1. **Pemisahan jenis kelamin sekamar** *(Berdasarkan No. 4b)*: Laki-laki dan perempuan dilarang ditempatkan di kamar yang sama.
+2. **Kapasitas kamar** *(Berdasarkan No. 1a)*: Kapasitas tetap 2 orang per kamar (posisi 1 dan 2); sistem menolak penambahan penghuni ketiga.
+3. **Kamar nonaktif** *(Berdasarkan No. 1b)*: Kamar yang ditandai nonaktif/rusak (`is_active = false`) dilewati oleh alokasi otomatis dan tidak dapat dipilih untuk penempatan.
+4. **Check-in tanpa alokasi kamar** *(Keputusan Pengembang / Integritas Data)*: Penghuni yang belum memiliki kamar atau slot aktif dilarang melakukan check-in.
+5. **Validasi waktu izin keluar** *(Berdasarkan No. 10a, 10e, dan 10f)*:
+   - Waktu kembali harus setelah waktu keluar.
+   - Waktu keluar tidak boleh mendahului waktu pengajuan (tidak boleh izin untuk waktu lampau).
+   - Waktu izin tidak boleh bertabrakan dengan izin lain yang sedang aktif (`PermitStatus IN ('pending', 'approved')`) milik penghuni yang sama.
+   - Hanya penghuni yang sedang aktif menginap (sudah check-in dan belum check-out) yang dapat mengajukan izin.
+6. **Penilaian catering sebelum hidang** *(Berdasarkan No. 17a)*: Penghuni dilarang menilai menu sebelum waktu makan tiba (`served_at <= now()`).
+7. **Batas waktu penilaian catering** *(Berdasarkan No. 17b)*: Penilaian terkunci setelah pukul 23.59 WIB pada hari menu dihidangkan.
+8. **Penyelesaian laundry wajib biaya** *(Deduksi No. 14a)*: Karena bukan laundry gratis dan tidak ada tarif otomatis per stel, biaya diketik manual oleh petugas dan wajib diisi sebelum status laundry diubah ke `done`.
+9. **Status akhir laundry** *(Berdasarkan No. 15b)*: Laundry yang sudah berstatus selesai tidak dapat dikembalikan menjadi diajukan.
+10. **Penolakan izin wajib alasan** *(Berdasarkan No. 12c)*: Petugas wajib mencantumkan alasan penolakan secara tertulis saat menolak permohonan izin (termasuk saat mengubah keputusan dari disetujui menjadi ditolak).
+11. **Pembatalan izin oleh penghuni** *(Berdasarkan No. 12b)*: Penghuni hanya dapat membatalkan izin selama statusnya masih diajukan (`pending`), yang mengubah status menjadi `cancelled`.
+12. **Pembatalan laundry oleh penghuni** *(Berdasarkan No. 15c)*: Penghuni hanya dapat membatalkan pesanan laundry selama statusnya masih diajukan (`pending`), yang mengubah status menjadi `cancelled`.
+13. **Pilihan agama terstandar** *(Berdasarkan No. 6c)*: Pilihan agama wajib dipilih dari enam agama resmi yang baku; sistem menolak teks bebas.
+14. **Pencegahan menu catering ganda** *(Berdasarkan No. 16a & Deduksi Bagian 1)*: Kombinasi tanggal hidang WIB (`served_on`, bertipe DATE) dan waktu makan (`meal_time`) memiliki kunci unik `UNIQUE(served_on, meal_time)` untuk mencegah duplikasi menu pada waktu makan yang sama di hari yang sama.
+
+### B. Peringatan dan Konfirmasi (Petugas Tetap Dapat Melanjutkan)
+Tindakan berikut menyimpang dari preferensi ideal namun dapat terjadi karena kebutuhan penataan di lapangan. Sistem memunculkan dialog konfirmasi dan tidak mengunci tindakan petugas:
+
+1. **Penempatan di luar lantai rombongan** *(Berdasarkan No. 2 dan keleluasaan No. 5a)*: Bila peserta ditempatkan di luar lantai utama rombongan angkatannya, sistem menampilkan dialog konfirmasi penempatan sebelum disimpan.
+2. **Teman sekamar beda angkatan** *(Berdasarkan No. 3b)*: Diizinkan bila peserta ganjil atau kuota mendesak. Sistem menampilkan konfirmasi peringatan perbedaan angkatan, dan petugas dapat menyetujui.
+3. **Teman sekamar beda agama** *(Berdasarkan No. 4a)*: Diutamakan seagama, namun diperbolehkan berbeda bila ketersediaan kamar mendesak. Sistem menampilkan konfirmasi perbedaan agama tanpa membatalkan penempatan.
+4. **Perbaikan profil setelah penempatan** *(Berdasarkan No. 7)*: Petugas dapat memperbaiki data penghuni kapan saja. Bila perubahan menyebabkan ketidakcocokan kriteria dengan teman sekamar, sistem memunculkan peringatan tanpa mengunci data atau membatalkan kamar.
+5. **Konfirmasi tindakan berdampak luas**:
+   - **Check-out mandiri** *(Berdasarkan No. 9b)*: Tombol check-out menampilkan dialog penegasan ("Apakah Anda yakin?") agar kamar tidak terlepas tanpa sengaja.
+   - **Pencabutan alokasi kamar** *(Berdasarkan No. 5a)*: Menampilkan dialog konfirmasi sebelum petugas mengosongkan kamar peserta.
+
+### C. Kemudahan Operasional Pengguna
+1. **Akses masuk banyak perangkat** *(Berdasarkan No. 18)*: Penghuni dan petugas dapat masuk secara bersamaan melalui ponsel dan komputer tanpa pembatasan jumlah perangkat per akun. Pengamanan percobaan kata sandi salah (*rate limiting*) dibatasi per kombinasi `email + IP` agar peserta di bawah Wi-Fi asrama yang sama (shared public IP) tidak saling mengunci.
+2. **Pemulihan salah check-out** *(Berdasarkan No. 9b)*: Petugas memiliki fungsi untuk membatalkan check-out yang keliru sehingga penghuni tidak kehilangan kamarnya.
+3. **Pendaftaran dan impor massal** *(Berdasarkan No. 6a)*: Petugas mendaftarkan penghuni melalui unggahan berkas Excel sekaligus maupun pendaftaran manual satu per satu oleh petugas.
+
+---
+
+## 5. Keputusan Final per Nomor Pertanyaan (Tabel Implementasi)
+
+Tabel berikut merangkum seluruh keputusan final dari 20 butir pertanyaan di `konfirmasi.md` yang telah diisi per 15 Oktober 2026 dan bagaimana keputusan tersebut diterapkan pada kode sumber:
+
+| No | Jawaban Terpilih (`konfirmasi.md`) | Yang Dibangun / Dampak Teknis |
+|---|---|---|
+| **1** | Data 78 kamar sudah benar; perlu menandai kamar rusak/perbaikan | Kolom `is_active` (boolean, bawaan `true`) pada tabel `rooms`; alokasi otomatis melewati kamar nonaktif; saklar aktif/nonaktif pada antarmuka admin. Status monitoring kamar (`RoomStatus`) ditambah nilai `inactive` untuk kamar nonaktif. Kapasitas tetap 2 orang per kamar dari konfigurasi. |
+| **2** | Ditempatkan di lantai mana saja yang masih kosong | `AllocateRooms::findRoomFor()` mencari kamar di lantai asal ke bawah (5 → 4 → 3), lalu meluas ke lantai lain yang masih memiliki slot kosong; tidak membiarkan peserta menunggu jika gedung masih memiliki kamar kosong. |
+| **3 & 4** | Boleh berbagi lantai; boleh berbagi kamar antar-angkatan (diutamakan se-angkatan); diusahakan seagama; gender cukup beda kamar (diutamakan pengelompokan lantai/sayap per jenis kelamin; laki-laki & perempuan sekamar dilarang keras); peserta khusus di lantai bawah | `AllocateRooms` menjalankan pencarian kamar bertingkat dengan syarat mutlak di setiap tahap: **jenis kelamin sama**, **kamar aktif (`is_active = true`)**, dan **kapasitas belum penuh (`< 2`)**.<br/>Urutan pencarian:<br/>1. Lantai rombongan + se-angkatan + seagama<br/>2. Lantai rombongan + se-angkatan (toleran agama)<br/>3. Lantai rombongan (toleran angkatan & agama)<br/>4. Lantai lain yang masih memiliki slot kosong.<br/>Penempatan manual admin memberi peringatan bila beda agama atau beda angkatan, dan memblokir mutlak bila beda gender. Peserta berkebutuhan khusus/lansia/hamil diatur via plotting penempatan manual admin. |
+| **5** | Petugas bisa memilihkan kamar, memindahkan (swap/pindah slot), dan membatalkan alokasi; pembatalan tidak otomatis | Action penempatan manual (`AssignRoomSlot`), pemindahan/tukar slot (`MoveResidentRoom`), dan pencabutan alokasi (`UnassignRoomSlot`) menggunakan transaksi dengan `RoomLocks`. Pembatalan alokasi dilakukan manual oleh petugas bila peserta tidak hadir. |
+| **6** | Petugas mengimpor Excel sekaligus atau mendaftarkan satu per satu; agama 6 pilihan resmi; format angkatan terstandar | Endpoint & antarmuka unggah impor Excel/CSV untuk pendaftaran massal akun & profil peserta; formulir tambah akun satu per satu oleh petugas; enum `Religion` (6 agama resmi); validasi format string angkatan pada FormRequest. |
+| **7** | Petugas boleh memperbaiki data profil kapan saja | Kunci edit profil setelah dialokasikan kamar dilepas; `UpdateResidentProfile` dapat dipanggil kapan saja oleh admin; jika data baru berbeda dengan teman sekamar, sistem memunculkan peringatan di antarmuka tanpa membatalkan kamar. |
+| **8** | Penghuni check-in/out mandiri; petugas bisa mencatatkan check-out atas nama penghuni | Penghuni menekan check-in dan check-out dari antarmuka mandiri; endpoint & tombol check-out oleh admin untuk mencatatkan kepulangan penghuni yang lupa melapor. |
+| **9** | Boleh dialokasikan lagi dengan akun yang sama; dialog konfirmasi check-out; petugas bisa batalkan check-out | Pengecualian "pernah check-out" dihapus dari `AllocateRooms::pendingResidents()`; dialog modal konfirmasi ("Apakah Anda yakin?") pada tombol check-out penghuni; Action `CancelCheckOut` bagi admin untuk memulihkan slot kamar yang salah check-out (selama slot belum diisi orang lain). |
+| **10** | Izin waktu lampau dilarang; waktu bebas; durasi bebas; jam malam bebas; dilarang izin tumpang tindih; hanya penghuni aktif menginap | Validasi di `SaveLeavePermitRequest`: `leaves_at >= now()`, `returns_at > leaves_at`, tidak ada irisan waktu dengan izin aktif lain (`PermitStatus IN ('pending', 'approved')`). Validasi membatasi pengajuan hanya untuk penghuni berstatus aktif (`stays.checked_in_at IS NOT NULL AND stays.checked_out_at IS NULL`). |
+| **11** | Jam aktual keluar/kembali tidak perlu dicatat di aplikasi | Tidak ada penambahan kolom waktu aktual keluar/kembali pada tabel `leave_permits`; status izin tetap `PermitStatus` standar; penegakan disiplin keterlambatan ditangani secara lisan/manual oleh pengelola. |
+| **12** | Petugas bisa ubah keputusan; penghuni bisa batalkan izin selama pending; penolakan wajib alasan | Endpoint pembatalan izin oleh penghuni dengan syarat `status = 'pending'`, mengubah status menjadi `cancelled`; kolom `rejection_reason` wajib diisi saat menolak izin (termasuk bila petugas mengubah keputusan dari disetujui menjadi ditolak); petugas memiliki wewenang mengubah keputusan status izin bila terjadi kondisi mendesak. |
+| **13** | Petugas bisa tulis balasan; ada status sedang ditangani; keluhan bisa dibuka kembali | Kolom `response` (text nullable) pada tabel `complaints`; enum `ComplaintStatus` diperluas dengan `in_progress`; transisi status: `pending` → `in_progress` → `resolved`; pembukaan kembali keluhan (`resolved` → `pending` / `in_progress`) dapat dilakukan oleh penghuni (pelapor) maupun petugas. |
+| **14** | Biaya laundry diketik petugas; pembayaran tidak dicatat; tanpa batas kuota laundry | Input biaya manual pada saat petugas menyelesaikan laundry (`status = done`); tidak ada kolom status pembayaran (diselesaikan langsung secara fisik di luar sistem); tidak ada pembatasan kuota stel laundry. |
+| **15** | Laundry dengan opsi pembatalan; selesai tidak bisa kembali ke diajukan; penghuni bisa membatalkan saat pending | Enum `LaundryStatus` memuat status `pending`, `done`, dan `cancelled`; transisi status selesai bersifat final (`done` tidak dapat kembali ke `pending`); penghuni dapat membatalkan pesanan selama status masih `pending`, mengubah status menjadi `cancelled`. |
+| **16** | Menu wajib nama makanan & waktu makan; tahapan status menu dihapus; petugas bisa edit/hapus menu; cegah menu ganda | Kolom `dish_name` dan `meal_time` (enum `MealTime`: `breakfast`, `lunch`, `dinner`) pada `catering_menus`; kolom `status` (`CateringStatus`) dihapus; endpoint `PATCH` (edit) dan `DELETE` (hapus) menu untuk admin; kolom `served_on` (DATE dalam WIB `Asia/Jakarta`) dengan indeks unik `UNIQUE(served_on, meal_time)` untuk mencegah menu ganda pada waktu makan yang sama di hari yang sama. |
+| **17** | Rating sebelum hidang ditolak; rating bisa diganti sampai 23.59 WIB hari penyajian; tanpa komentar | Validasi `served_at <= now()` pada penyimpanan rating; method `ratingClosesAt()` mengunci rating pada pukul 23.59 WIB tanggal hidang (zona `Asia/Jakarta`); kolom komentar tidak ditambahkan (cukup rating bintang 1–5). |
+| **18** | Kapasitas 156 penghuni, 100–150 login serentak; multi-device bebas | Batasan percobaan login (*rate limiting*) dibatasi per kombinasi `email + IP` agar lonjakan login peserta di bawah satu Wi-Fi asrama (shared IP) tidak saling memblokir; sesi login multi-device diizinkan (bebas buka di ponsel dan komputer tanpa pembatasan sesi tunggal). |
+| **19** | Fasilitas rilis awal: ganti/lupa kata sandi dan unduh data Excel/PDF | Formulir ubah kata sandi dan alur reset kata sandi; tombol ekspor data tabel ke format Excel/PDF; fitur pemberitahuan, pengumuman, dan peran pengguna lain ditunda untuk rilis berikutnya. |
+| **20** | Data aplikasi versi lama tidak dimigrasi | Basis data dimulai dari kondisi bersih (`migrate:fresh` aman untuk pengembangan dan pengujian); tidak diperlukan skrip migrasi data historis. |
+
+
+

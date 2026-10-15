@@ -39,18 +39,9 @@ async function allocate() {
     aria-label="Alokasi kamar otomatis"
     class="card mt-6 p-5"
   >
-    <h2 class="font-semibold">
+    <h2 class="section-title">
       Alokasi kamar otomatis
     </h2>
-    <p class="muted mt-2 text-sm">
-      Angkatan yang sama diprioritaskan pada satu lantai, mulai lantai 5 lalu turun ke 4 dan 3.
-      Teman sekamar harus memiliki gender dan agama yang sama. Penghuni yang sudah dialokasikan
-      tetap di kamarnya.
-    </p>
-    <p class="muted mt-2 text-sm">
-      Simpan profil user terlebih dahulu. Profil belum lengkap atau kamar yang tidak sesuai akan
-      dilaporkan setelah alokasi.
-    </p>
 
     <AlertMessage
       :error="action.error.value"
@@ -68,17 +59,31 @@ async function allocate() {
 
     <div
       v-if="result"
-      class="mt-4 space-y-3 text-sm"
+      class="mt-5 space-y-3 text-sm"
     >
-      <p v-if="result.incomplete.length">
-        <b>Profil belum lengkap:</b> {{ incompleteNames }}
-      </p>
-      <p v-if="result.waiting.length">
-        <b>Menunggu kamar yang sesuai:</b> {{ waitingNames }}
-      </p>
-      <details v-if="result.allocated.length">
-        <summary>Hasil penempatan ({{ result.allocated.length }})</summary>
-        <ul class="mt-2 list-inside list-disc">
+      <div
+        v-if="result.incomplete.length"
+        class="rounded-xl border border-amber-200 bg-amber-50/80 p-3.5 text-amber-900
+          dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200"
+      >
+        <p><b>Profil belum lengkap:</b> {{ incompleteNames }}</p>
+      </div>
+      <div
+        v-if="result.waiting.length"
+        class="rounded-xl border border-sky-200 bg-sky-50/80 p-3.5 text-sky-900
+          dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-200"
+      >
+        <p><b>Menunggu kamar yang sesuai:</b> {{ waitingNames }}</p>
+      </div>
+      <details
+        v-if="result.allocated.length"
+        class="rounded-xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-emerald-950
+          dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-100"
+      >
+        <summary class="cursor-pointer font-bold text-emerald-800 dark:text-emerald-300">
+          Hasil penempatan ({{ result.allocated.length }})
+        </summary>
+        <ul class="mt-2 list-inside list-disc space-y-1 text-xs">
           <li
             v-for="user in result.allocated"
             :key="`${user.id}-${user.room}`"

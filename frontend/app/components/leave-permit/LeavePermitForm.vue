@@ -30,12 +30,21 @@ function submit() {
 
 <template>
   <form
-    class="mt-5 space-y-4"
+    class="mt-6 space-y-4 rounded-2xl border border-slate-100 bg-slate-50/70 p-5
+      dark:border-slate-800 dark:bg-slate-900/40"
     @submit.prevent="submit"
   >
-    <h3 class="font-semibold">
-      {{ permit ? 'Edit pengajuan izin' : 'Ajukan izin keluar' }}
-    </h3>
+    <div class="flex items-center justify-between border-b border-slate-200/80 pb-3 dark:border-slate-800">
+      <h3 class="text-sm font-bold text-slate-900 dark:text-white">
+        {{ permit ? 'Edit pengajuan izin' : 'Ajukan izin keluar' }}
+      </h3>
+      <span
+        v-if="permit"
+        class="text-xs font-semibold text-indigo-600 dark:text-indigo-400"
+      >
+        Mode Penyuntingan
+      </span>
+    </div>
 
     <div class="grid gap-4 sm:grid-cols-2">
       <label>
@@ -67,10 +76,11 @@ function submit() {
         maxlength="2000"
         required
         :disabled="busy"
+        placeholder="Tuliskan keperluan keluar asrama..."
       />
     </label>
 
-    <div class="flex gap-3">
+    <div class="flex items-center gap-3 pt-1">
       <button
         class="btn"
         :disabled="busy"
@@ -80,7 +90,7 @@ function submit() {
       <button
         v-if="permit"
         type="button"
-        class="btn-text"
+        class="btn-text px-3 py-2"
         :disabled="busy"
         @click="emit('cancel')"
       >

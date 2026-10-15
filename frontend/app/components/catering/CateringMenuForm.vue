@@ -52,19 +52,11 @@ function handleSubmit() {
         >
           <AppIcon name="catering" class="size-6" />
         </div>
-        <div>
-          <h2 class="text-xl font-bold text-slate-900 dark:text-white">
-            {{ menu ? 'Edit menu catering' : 'Tambah menu catering' }}
-          </h2>
-          <p class="muted mt-0.5 text-xs">
-            Jadwalkan menu hidangan baru untuk penghuni asrama Pusdiklat BPS.
-          </p>
-        </div>
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white">
+          {{ menu ? 'Edit menu catering' : 'Tambah menu catering' }}
+        </h2>
       </div>
-      <span
-        v-if="menu"
-        class="text-xs font-semibold text-indigo-600 dark:text-indigo-400"
-      >
+      <span v-if="menu" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
         Mode Penyuntingan
       </span>
     </div>

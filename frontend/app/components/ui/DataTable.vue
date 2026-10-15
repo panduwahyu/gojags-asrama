@@ -21,26 +21,12 @@ type TableState<Row> = {
   refresh: () => Promise<void>
 }
 
-const props = defineProps<{
+defineProps<{
   table: TableState<T>
   columns: TableColumn[]
   searchLabel: string
   emptyText: string
 }>()
-
-function ariaSort(column: string): 'ascending' | 'descending' | 'none' {
-  if (props.table.sort.value !== column) {
-    return 'none'
-  }
-  return props.table.direction.value === 'asc' ? 'ascending' : 'descending'
-}
-
-function sortIndicator(column: string): string {
-  if (props.table.sort.value !== column) {
-    return '↕'
-  }
-  return props.table.direction.value === 'asc' ? '▲' : '▼'
-}
 
 function cellText(row: T, key: string): string {
   const record: Record<string, unknown> = row
@@ -50,43 +36,14 @@ function cellText(row: T, key: string): string {
 </script>
 
 <template>
-  <div class="mt-5">
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <form
-        class="flex flex-wrap gap-2"
-        @submit.prevent="table.applySearch()"
-      >
-        <input
-          v-model="table.search.value"
-          type="search"
-          class="sm:w-64!"
-          :aria-label="searchLabel"
-          :placeholder="`${searchLabel}…`"
-        >
-        <button
-          class="btn py-2.5!"
-          :disabled="table.loading.value"
-        >
-          Cari
-        </button>
-        <button
-          v-if="table.search.value"
-          type="button"
-          class="btn-text px-2"
-          @click="table.resetSearch()"
-        >
-          Reset
-        </button>
-      </form>
-      <span
-        v-if="table.loading.value"
-        role="status"
-        aria-live="polite"
-        class="muted text-xs"
-      >
-        Memuat…
-      </span>
-    </div>
+  <div class="mt-6">
+    <TableSearch
+      v-model:search="table.search.value"
+      :search-label="searchLabel"
+      :loading="table.loading.value"
+      @submit="table.applySearch()"
+      @reset="table.resetSearch()"
+    />
 
     <AlertMessage
       v-if="table.loadError.value"
@@ -95,43 +52,25 @@ function cellText(row: T, key: string): string {
       @retry="table.refresh()"
     />
 
-    <div class="mt-4 overflow-x-auto">
+    <div class="card mt-4 overflow-hidden overflow-x-auto shadow-xs">
       <table class="w-full border-collapse text-sm">
-        <thead>
-          <tr
-            class="border-b border-slate-200 text-left text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400"
-          >
-            <th
-              v-for="col in columns"
-              :key="col.key"
-              scope="col"
-              class="p-3"
-              :aria-sort="col.sortable ? ariaSort(col.key) : undefined"
-            >
-              <button
-                v-if="col.sortable"
-                type="button"
-                class="flex items-center gap-2 text-left"
-                :disabled="table.loading.value"
-                @click="table.sortBy(col.key)"
-              >
-                {{ col.label }}
-                <span aria-hidden="true">{{ sortIndicator(col.key) }}</span>
-              </button>
-              <span v-else>{{ col.label }}</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
+        <SortableHeader
+          :columns="columns"
+          :sort="table.sort.value"
+          :direction="table.direction.value"
+          :loading="table.loading.value"
+          @sort="table.sortBy($event)"
+        />
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
           <tr
             v-for="row in table.rows.value"
             :key="row.id"
-            class="border-b border-slate-100 dark:border-slate-800/70"
+            class="transition-colors hover:bg-indigo-50/30 dark:hover:bg-slate-800/40"
           >
             <td
               v-for="col in columns"
               :key="col.key"
-              class="p-3"
+              class="px-4 py-3.5 text-slate-700 dark:text-slate-200"
             >
               <slot
                 :name="col.key"
@@ -144,9 +83,11 @@ function cellText(row: T, key: string): string {
           <tr v-if="!table.rows.value.length && !table.loading.value">
             <td
               :colspan="columns.length"
-              class="muted p-3"
+              class="p-8 text-center"
             >
-              {{ emptyText }}
+              <p class="muted text-sm">
+                {{ emptyText }}
+              </p>
             </td>
           </tr>
         </tbody>

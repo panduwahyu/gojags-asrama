@@ -46,10 +46,6 @@ watch(table.rows, (rows) => {
     <h2 class="section-title">
       Izin keluar
     </h2>
-    <p class="muted mt-2">
-      {{ isAdmin ? 'Tinjau pengajuan izin keluar penghuni.' : 'Pengajuan dapat diedit selama berstatus Diajukan.' }}
-      Semua waktu menggunakan WIB.
-    </p>
 
     <AlertMessage
       :error="action.error.value"

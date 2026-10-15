@@ -1,4 +1,5 @@
 import { expect, test } from '../support/fixtures'
+import { MESSAGES } from '../support/messages'
 import { CSRF_TOKEN, mockEmptyTables } from '../support/mock-api'
 
 test('login admin berhasil dan mengalihkan ke beranda admin', async ({ page }) => {
@@ -35,8 +36,8 @@ test('login gagal menampilkan pesan error dari server', async ({ page }) => {
     route.fulfill({
       status: 422,
       json: {
-        message: 'Email atau kata sandi salah.',
-        errors: { email: ['Email atau kata sandi salah.'] },
+        message: MESSAGES.INVALID_CREDENTIALS,
+        errors: { email: [MESSAGES.INVALID_CREDENTIALS] },
       },
     }),
   )

@@ -22,16 +22,15 @@ const CARDS: { status: RoomStatus; label: string }[] = [
     <div
       v-for="card in CARDS"
       :key="card.status"
-      class="card p-5"
+      class="card p-5 transition hover:-translate-y-0.5 hover:shadow-md"
     >
-      <StatusBadge :tone="ROOM_TONE[card.status]">
-        {{ card.label }}
-      </StatusBadge>
-      <p class="mt-4 text-3xl font-bold">
+      <div class="flex items-center justify-between">
+        <StatusBadge :tone="ROOM_TONE[card.status]">
+          {{ card.label }}
+        </StatusBadge>
+      </div>
+      <p class="mt-4 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
         {{ monitoring[card.status] ?? 0 }}
-      </p>
-      <p class="muted mt-1 text-xs">
-        kamar
       </p>
     </div>
   </section>

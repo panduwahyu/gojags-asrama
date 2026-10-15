@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { MyRoomData } from '~/types/room'
 
-definePageMeta({ role: 'resident' })
 useHead({ title: 'Kamar saya · Gojags Asrama' })
 
 const api = useApi()
@@ -25,7 +24,10 @@ onMounted(() => {
 
 <template>
   <div>
-    <PageHeader title="Kamar saya" />
+    <PageHeader
+      overline="INFORMASI HUNIAN"
+      title="Kamar saya"
+    />
     <AlertMessage
       v-if="loadError"
       error="Data kamar tidak dapat dimuat."

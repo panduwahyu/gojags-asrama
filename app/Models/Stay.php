@@ -11,6 +11,7 @@ class Stay extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'room_id',
         'user_name',
         'room_number',

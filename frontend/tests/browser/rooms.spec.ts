@@ -1,4 +1,5 @@
 import { expect, test } from '../support/fixtures'
+import { MESSAGES } from '../support/messages'
 import { sampleResident, sampleRoom } from '../support/samples'
 
 test('admin menyimpan satu profil penghuni tanpa menghapus draf penghuni lain', async ({ asAdmin: page }) => {
@@ -14,7 +15,7 @@ test('admin menyimpan satu profil penghuni tanpa menghapus draf penghuni lain', 
       gender: 'male',
       religion: 'Islam',
     })
-    await route.fulfill({ json: { message: 'Profil berhasil disimpan.' } })
+    await route.fulfill({ json: { message: MESSAGES.PROFILE_SAVED } })
   })
 
   await page.goto('/admin/rooms')
@@ -55,7 +56,7 @@ test('alokasi otomatis menampilkan ringkasan dan memuat ulang tabel kamar', asyn
     ]
     await route.fulfill({
       json: {
-        message: 'Alokasi selesai: 1 ditempatkan, 0 menunggu kamar sesuai, 0 profil belum lengkap.',
+        message: MESSAGES.ALLOCATION_SUMMARY,
         allocated: [{ id: 1, name: 'Andi Pratama', room: '501', floor: 5 }],
         waiting: [],
         incomplete: [],
@@ -79,7 +80,7 @@ test('menampilkan pesan error server saat penyimpanan profil gagal', async ({ as
   await page.route('**/api/residents/1', route =>
     route.fulfill({
       status: 422,
-      json: { message: 'Profil penghuni yang sudah dialokasikan ke kamar tidak dapat diubah.' },
+      json: { message: MESSAGES.ALLOCATED_PROFILE_LOCKED },
     }),
   )
 

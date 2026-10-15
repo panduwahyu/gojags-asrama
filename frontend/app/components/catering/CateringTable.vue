@@ -46,9 +46,6 @@ function onDelete(menu: CateringMenu) {
     <h2 class="text-xl font-semibold">
       Menu dan rating catering
     </h2>
-    <p class="muted mb-5 mt-2 text-sm">
-      Rating menggunakan skala 1–5 bintang. Hasil menampilkan rata-rata dan jumlah penilai.
-    </p>
     <DataTable
       :table="table"
       :columns="columns"

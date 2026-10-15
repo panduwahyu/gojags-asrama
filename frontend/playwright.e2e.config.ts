@@ -21,7 +21,10 @@ export default defineConfig({
     {
       command: `npm run dev -- --port ${NUXT_PORT}`,
       url: BASE_URL,
-      env: { NUXT_LARAVEL_BASE_URL: LARAVEL_URL },
+      env: {
+        NUXT_LARAVEL_BASE_URL: LARAVEL_URL,
+        NUXT_IGNORE_LOCK: '1',
+      },
       reuseExistingServer: false,
     },
   ],

@@ -11,3 +11,6 @@ export type Session = {
   csrfToken: string
   user: User | null
 }
+
+export type SessionUser = User
+

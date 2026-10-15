@@ -79,7 +79,9 @@ class TableQueryTest extends TestCase
     {
         $user = User::factory()->create();
         $pending = LeavePermit::factory()->for($user)->create(['status' => PermitStatus::Pending, 'reason' => 'Alpha']);
-        $approved = LeavePermit::factory()->for($user)->create(['status' => PermitStatus::Approved, 'reason' => 'Beta']);
+        $approved = LeavePermit::factory()
+            ->for($user)
+            ->create(['status' => PermitStatus::Approved, 'reason' => 'Beta']);
 
         $diajukan = $this->getJson('/api/test-permits?q=Diajukan')->assertOk();
         $this->assertSame([$pending->id], array_column($diajukan->json('data'), 'id'));

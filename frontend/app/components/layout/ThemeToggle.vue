@@ -1,9 +1,9 @@
 <script setup lang="ts">
 const buttonClass = [
   'inline-flex shrink-0 items-center gap-2 rounded-full border border-slate-200 bg-slate-50',
-  'px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-orange-50',
-  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-400',
-  'dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700',
+  'px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-indigo-50 hover:text-indigo-600',
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500',
+  'dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:bg-slate-800',
 ].join(' ')
 
 const sunPath = [
