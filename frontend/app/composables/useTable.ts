@@ -26,7 +26,10 @@ export function useTable<T, R extends Paginated<T> = Paginated<T>>(path: string)
     },
   })
 
+  let currentRequestId = 0
+
   async function refresh() {
+    const requestId = ++currentRequestId
     loading.value = true
     loadError.value = false
     try {
@@ -39,13 +42,20 @@ export function useTable<T, R extends Paginated<T> = Paginated<T>>(path: string)
           page: page.value,
         },
       })
+      if (requestId !== currentRequestId) {
+        return
+      }
       response.value = data
       rows.value = data.data
       meta.value = data.meta
     } catch {
-      loadError.value = true
+      if (requestId === currentRequestId) {
+        loadError.value = true
+      }
     } finally {
-      loading.value = false
+      if (requestId === currentRequestId) {
+        loading.value = false
+      }
     }
   }
 
@@ -53,10 +63,10 @@ export function useTable<T, R extends Paginated<T> = Paginated<T>>(path: string)
     if (debounceTimer !== undefined) {
       clearTimeout(debounceTimer)
     }
-    const Changed = committedQuery.value === search.value && page.value === 1
+    const unchanged = committedQuery.value === search.value && page.value === 1
     committedQuery.value = search.value
     page.value = 1
-    if (Changed) {
+    if (unchanged) {
       refresh()
     }
   }

@@ -104,3 +104,52 @@ test('menampilkan keadaan kosong dan tombol Coba lagi saat gagal memuat', async 
   await section.getByRole('button', { name: 'Coba lagi' }).click()
   await expect(section.getByText('Belum ada pengajuan izin keluar.')).toBeVisible()
 })
+
+test('jawaban lambat tidak menimpa hasil yang lebih baru', async ({ asResident: page }) => {
+  await page.clock.install()
+  await page.route('**/api/leave-permits?*', async (route) => {
+    const url = new URL(route.request().url())
+    const q = url.searchParams.get('q') ?? ''
+    if (q === 'lama') {
+      setTimeout(async () => {
+        await route.fulfill({
+          json: {
+            data: [sampleLeavePermit({ reason: 'Hasil pencarian lama' })],
+            meta: { current_page: 1, last_page: 1, total: 1 },
+          },
+        })
+      }, 600)
+      return
+    }
+    if (q === 'baru') {
+      await route.fulfill({
+        json: {
+          data: [sampleLeavePermit({ reason: 'Hasil pencarian baru' })],
+          meta: { current_page: 1, last_page: 1, total: 1 },
+        },
+      })
+      return
+    }
+    await route.fulfill({
+      json: {
+        data: [sampleLeavePermit({ reason: 'Default reason' })],
+        meta: { current_page: 1, last_page: 1, total: 1 },
+      },
+    })
+  })
+
+  await page.goto('/resident/room')
+  const section = page.getByRole('region', { name: 'Izin keluar' })
+  const searchInput = section.getByRole('searchbox', { name: 'Cari izin keluar' })
+
+  await searchInput.fill('lama')
+  await page.clock.fastForward(350)
+
+  await searchInput.fill('baru')
+  await page.clock.fastForward(350)
+
+  await page.clock.fastForward(650)
+
+  await expect(section.getByText('Hasil pencarian baru')).toBeVisible()
+  await expect(section.getByText('Hasil pencarian lama')).not.toBeVisible()
+})
