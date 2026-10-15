@@ -7,6 +7,7 @@ use App\Models\CateringMenu;
 use App\Models\CateringRating;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class CateringTest extends TestCase
@@ -295,5 +296,96 @@ class CateringTest extends TestCase
             [$breakfast->id, $lunch->id, $dinner->id],
             array_column($sorted->json('data'), 'id')
         );
+    }
+
+    public function test_rating_before_served_at_is_rejected(): void
+    {
+        $resident = User::factory()->resident()->create();
+        $this->travelTo(Carbon::parse('2026-10-15T05:00:00.000Z'));
+        $menu = CateringMenu::factory()->create([
+            'served_at' => Carbon::parse('2026-10-16T05:00:00.000Z'),
+        ]);
+
+        $this->actingAs($resident)
+            ->putJson("/api/catering-menus/{$menu->id}/rating", ['rating' => 4])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'rating' => 'Menu belum dihidangkan sehingga belum bisa dinilai.',
+            ]);
+    }
+
+    public function test_rating_window_lifecycle_and_boundaries(): void
+    {
+        $resident = User::factory()->resident()->create();
+        $menu = CateringMenu::factory()->create([
+            'served_at' => Carbon::parse('2026-10-15T05:00:00.000Z'),
+        ]);
+
+        // 12.01 WIB (05.01 UTC) -> rating diterima
+        $this->travelTo(Carbon::parse('2026-10-15T05:01:00.000Z'));
+        $this->actingAs($resident)
+            ->putJson("/api/catering-menus/{$menu->id}/rating", ['rating' => 4])
+            ->assertOk();
+
+        // 23.59 WIB hari yang sama (16.59 UTC) -> rating masih bisa diganti
+        $this->travelTo(Carbon::parse('2026-10-15T16:59:00.000Z'));
+        $this->actingAs($resident)
+            ->putJson("/api/catering-menus/{$menu->id}/rating", ['rating' => 5])
+            ->assertOk();
+
+        // 00.00 WIB hari berikutnya (17.00 UTC) -> 422: "Masa penilaian menu ini sudah berakhir."
+        $this->travelTo(Carbon::parse('2026-10-15T17:00:00.000Z'));
+        $this->actingAs($resident)
+            ->putJson("/api/catering-menus/{$menu->id}/rating", ['rating' => 3])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'rating' => 'Masa penilaian menu ini sudah berakhir.',
+            ]);
+    }
+
+    public function test_late_night_menu_rating_closes_at_end_of_wib_day_not_utc_day(): void
+    {
+        $resident = User::factory()->resident()->create();
+        $menu = CateringMenu::factory()->create([
+            'served_at' => Carbon::parse('2026-10-15T16:30:00.000Z'),
+        ]);
+
+        $this->travelTo(Carbon::parse('2026-10-15T16:45:00.000Z'));
+        $this->actingAs($resident)
+            ->putJson("/api/catering-menus/{$menu->id}/rating", ['rating' => 5])
+            ->assertOk();
+
+        $this->travelTo(Carbon::parse('2026-10-15T17:05:00.000Z'));
+        $this->actingAs($resident)
+            ->putJson("/api/catering-menus/{$menu->id}/rating", ['rating' => 4])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'rating' => 'Masa penilaian menu ini sudah berakhir.',
+            ]);
+    }
+
+    public function test_menu_list_exposes_can_rate_for_all_three_states(): void
+    {
+        $resident = User::factory()->resident()->create();
+        $this->travelTo(Carbon::parse('2026-10-15T05:00:00.000Z'));
+
+        $future = CateringMenu::factory()->create([
+            'served_at' => Carbon::parse('2026-10-16T05:00:00.000Z'),
+        ]);
+
+        $open = CateringMenu::factory()->create([
+            'served_at' => Carbon::parse('2026-10-15T05:00:00.000Z'),
+        ]);
+
+        $closed = CateringMenu::factory()->create([
+            'served_at' => Carbon::parse('2026-10-14T05:00:00.000Z'),
+        ]);
+
+        $response = $this->actingAs($resident)->getJson('/api/catering-menus')->assertOk();
+        $byNumber = collect($response->json('data'))->keyBy('id');
+
+        $this->assertFalse($byNumber[$future->id]['can_rate']);
+        $this->assertTrue($byNumber[$open->id]['can_rate']);
+        $this->assertFalse($byNumber[$closed->id]['can_rate']);
     }
 }

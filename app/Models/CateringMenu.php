@@ -8,10 +8,25 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class CateringMenu extends Model
 {
     use HasFactory;
+
+    public function ratingClosesAt(): Carbon
+    {
+        $timezone = (string) config('asrama.display_timezone', 'Asia/Jakarta');
+
+        return $this->served_at->copy()->setTimezone($timezone)->endOfDay()->utc();
+    }
+
+    public function canBeRated(): bool
+    {
+        $now = now();
+
+        return $now->gte($this->served_at) && $now->lte($this->ratingClosesAt());
+    }
 
     protected $fillable = [
         'menu_number',

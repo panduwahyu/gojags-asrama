@@ -19,7 +19,7 @@ class CateringMenuFactory extends Factory
             'dish_name' => fake()->words(3, true),
             'meal_time' => fake()->randomElement(MealTime::cases()),
             'provider' => fake()->company(),
-            'served_at' => now()->addHours(2),
+            'served_at' => now(),
             'status' => CateringStatus::Scheduled,
         ];
     }

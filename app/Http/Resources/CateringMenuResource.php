@@ -24,6 +24,7 @@ class CateringMenuResource extends JsonResource
                 : null,
             'rating_count' => (int) $this->rating_count,
             'my_rating' => $this->my_rating !== null ? (int) $this->my_rating : null,
+            'can_rate' => $this->canBeRated(),
         ];
     }
 }
