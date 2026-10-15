@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use BackedEnum;
 use Closure;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +17,9 @@ final class TableQuery
     /** @var array<string, string|Builder|Closure> */
     private array $sortable = ['id' => 'id'];
 
+    /** @var array<string, class-string<BackedEnum>> */
+    private array $statuses = [];
+
     private function __construct(private Builder $query) {}
 
     public static function for(Builder $query): self
@@ -27,6 +31,23 @@ final class TableQuery
     public function search(array $columns): self
     {
         $this->searchable = $columns;
+
+        return $this;
+    }
+
+    /**
+     * Kolom enum: dicari lewat label() dan diurut menurut urutan case pada enum
+     * (urutan alur kerja), bukan menurut abjad nilai yang tersimpan.
+     *
+     * @param  class-string<BackedEnum>  $enum
+     */
+    public function status(string $column, string $enum): self
+    {
+        $this->statuses[$column] = $enum;
+        $this->sortable[$column] = fn (Builder $query, string $direction) => $query->orderByRaw(
+            $this->enumOrderSql($query->qualifyColumn($column), $enum).' '.$direction,
+            array_column($enum::cases(), 'value'),
+        );
 
         return $this;
     }
@@ -68,14 +89,21 @@ final class TableQuery
             return;
         }
 
-        $this->query->where(function (Builder $query) use ($term) {
+        // % dan _ yang diketik pengguna dicari apa adanya, bukan sebagai wildcard.
+        $like = '%'.addcslashes($term, '%_\\').'%';
+
+        $this->query->where(function (Builder $query) use ($like, $term) {
             foreach ($this->searchable as $column) {
                 if (str_contains($column, '.')) {
                     [$relation, $field] = explode('.', $column, 2);
-                    $query->orWhereRelation($relation, $field, 'like', "%{$term}%");
+                    $query->orWhereRelation($relation, $field, 'like', $like);
                 } else {
-                    $query->orWhere($query->qualifyColumn($column), 'like', "%{$term}%");
+                    $query->orWhere($query->qualifyColumn($column), 'like', $like);
                 }
+            }
+
+            foreach ($this->statuses as $column => $enum) {
+                $query->orWhereIn($query->qualifyColumn($column), $this->valuesMatchingLabel($enum, $term));
             }
         });
     }
@@ -94,5 +122,30 @@ final class TableQuery
         if ($sort !== 'id') {
             $this->query->orderBy($this->query->qualifyColumn('id'), $direction);
         }
+    }
+
+    /**
+     * @param  class-string<BackedEnum>  $enum
+     * @return list<string>
+     */
+    private function valuesMatchingLabel(string $enum, string $term): array
+    {
+        $matches = array_filter(
+            $enum::cases(),
+            fn (BackedEnum $case) => mb_stripos($case->label(), $term) !== false
+        );
+
+        return array_values(array_map(fn (BackedEnum $case) => $case->value, $matches));
+    }
+
+    /** @param  class-string<BackedEnum>  $enum */
+    private function enumOrderSql(string $column, string $enum): string
+    {
+        $branches = '';
+        foreach (array_keys($enum::cases()) as $position) {
+            $branches .= " WHEN ? THEN {$position}";
+        }
+
+        return "CASE {$column}{$branches} END";
     }
 }

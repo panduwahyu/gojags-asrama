@@ -18,11 +18,11 @@ class ComplaintController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $complaints = TableQuery::for(Complaint::visibleTo($request->user())->with('user'))
-            ->search(['title', 'body', 'status', 'user.name'])
+            ->search(['title', 'body', 'user.name'])
+            ->status('status', ComplaintStatus::class)
             ->sort([
                 'title',
                 'body',
-                'status',
                 'created_at',
                 'resolved_at',
                 'user_name' => User::nameOf('complaints'),

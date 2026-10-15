@@ -20,12 +20,12 @@ class LeavePermitController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $permits = TableQuery::for(LeavePermit::visibleTo($request->user())->with('user'))
-            ->search(['reason', 'status', 'user.name'])
+            ->search(['reason', 'user.name'])
+            ->status('status', PermitStatus::class)
             ->sort([
                 'leaves_at',
                 'returns_at',
                 'reason',
-                'status',
                 'user_name' => User::nameOf('leave_permits'),
             ])
             ->paginate($request);
