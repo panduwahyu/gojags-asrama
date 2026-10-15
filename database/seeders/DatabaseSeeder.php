@@ -11,9 +11,10 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        $this->call([
-            RoomSeeder::class,
-            AccountSeeder::class,
-        ]);
+        $this->call(RoomSeeder::class);
+
+        if (app()->environment(['local', 'testing', 'e2e'])) {
+            $this->call(AccountSeeder::class);
+        }
     }
 }

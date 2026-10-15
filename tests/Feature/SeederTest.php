@@ -34,4 +34,14 @@ class SeederTest extends TestCase
         $this->assertSame(11, User::where('role', Role::Resident)->count());
         $this->assertSame('islam', $user1->fresh()->religion);
     }
+
+    public function test_demo_accounts_are_not_seeded_in_production(): void
+    {
+        $this->app->detectEnvironment(fn () => 'production');
+
+        $this->artisan('db:seed', ['--force' => true]);
+
+        $this->assertSame(78, Room::count());
+        $this->assertSame(0, User::count());
+    }
 }
