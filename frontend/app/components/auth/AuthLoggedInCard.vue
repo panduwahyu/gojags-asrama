@@ -16,7 +16,7 @@ defineProps<{
       ({{ user.role === 'admin' ? 'Pengelola Asrama' : 'Penghuni Asrama' }}).
     </p>
     <NuxtLink
-      :to="user.role === 'admin' ? '/admin' : '/resident'"
+      :to="homePathFor(user.role)"
       class="mt-4 inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3 text-sm font-semibold
         text-white shadow-[0_0_24px_rgba(79,70,229,0.5)] hover:bg-indigo-500"
     >

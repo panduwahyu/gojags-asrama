@@ -31,8 +31,7 @@ async function login() {
   if (ok && nextSession) {
     apply(nextSession)
     password.value = ''
-    const home = user.value?.role === 'admin' ? '/admin' : '/resident'
-    await navigateTo(home)
+    await navigateTo(homePathFor(user.value?.role))
   }
 }
 </script>

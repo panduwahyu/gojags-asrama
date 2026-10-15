@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { menusFor, requiredRole } from '../../app/utils/navigation'
+import { homePathFor, menusFor, requiredRole } from '../../app/utils/navigation'
 
 describe('navigation utils', () => {
   describe('requiredRole', () => {
@@ -49,6 +49,20 @@ describe('navigation utils', () => {
 
       const defaultMenus = menusFor(undefined)
       expect(defaultMenus).toEqual(residentMenus)
+    })
+  })
+
+  describe('homePathFor', () => {
+    it('mengembalikan /admin untuk role admin', () => {
+      expect(homePathFor('admin')).toBe('/admin')
+    })
+
+    it('mengembalikan /resident untuk role resident', () => {
+      expect(homePathFor('resident')).toBe('/resident')
+    })
+
+    it('mengembalikan /resident saat role undefined', () => {
+      expect(homePathFor(undefined)).toBe('/resident')
     })
   })
 })

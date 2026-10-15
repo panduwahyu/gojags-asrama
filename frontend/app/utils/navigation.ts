@@ -24,6 +24,10 @@ export function menusFor(role?: Role): NavItem[] {
   return role === 'admin' ? ADMIN_MENUS : RESIDENT_MENUS
 }
 
+export function homePathFor(role?: Role): string {
+  return role === 'admin' ? '/admin' : '/resident'
+}
+
 export function requiredRole(path: string): Role | null {
   if (path === '/admin' || path.startsWith('/admin/')) {
     return 'admin'

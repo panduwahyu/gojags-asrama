@@ -10,7 +10,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo('/login', { replace: true })
   }
 
-  const home = user.value?.role === 'admin' ? '/admin' : '/resident'
+  const home = homePathFor(user.value?.role)
 
   if (to.path === '/' || to.path === '/login') {
     if (user.value) {
