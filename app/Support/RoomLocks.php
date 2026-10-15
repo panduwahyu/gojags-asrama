@@ -16,11 +16,7 @@ final class RoomLocks
      */
     public static function acquireAll(): array
     {
-        $rooms = Room::query()
-            ->orderByDesc('floor')
-            ->orderBy('number')
-            ->lockForUpdate()
-            ->get();
+        $rooms = self::lockRooms();
 
         $users = User::query()
             ->orderBy('id')
@@ -40,10 +36,7 @@ final class RoomLocks
      */
     public static function acquireFor(User $user): ?RoomSlot
     {
-        Room::query()
-            ->orderBy('id')
-            ->lockForUpdate()
-            ->get();
+        self::lockRooms();
 
         User::query()
             ->whereKey($user->id)
@@ -55,5 +48,17 @@ final class RoomLocks
             ->where('user_id', $user->id)
             ->lockForUpdate()
             ->first();
+    }
+
+    /**
+     * @return Collection<int, Room>
+     */
+    private static function lockRooms(): Collection
+    {
+        return Room::query()
+            ->orderByDesc('floor')
+            ->orderBy('number')
+            ->lockForUpdate()
+            ->get();
     }
 }
