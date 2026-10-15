@@ -78,7 +78,7 @@ onMounted(() => {
       />
     </div>
 
-    <datalist id="agama-options">
+    <datalist id="religion-options">
       <option
         v-for="option in RELIGION_OPTIONS"
         :key="option"

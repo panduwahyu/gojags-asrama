@@ -33,7 +33,7 @@ defineProps<{
         class="mx-auto flex size-12 items-center justify-center rounded-xl bg-slate-100 text-slate-400
           dark:bg-slate-800 dark:text-slate-500"
       >
-        <AppIcon name="kamar" class="size-6" />
+        <AppIcon name="room" class="size-6" />
       </div>
       <p class="muted mt-3 text-sm">
         Belum ada riwayat.

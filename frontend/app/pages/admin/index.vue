@@ -15,7 +15,7 @@ const { data, status, error, refresh } = await useAsyncData('dashboard', () =>
 const services = [
   {
     key: 'rooms' as const,
-    icon: 'kamar',
+    icon: 'room',
     to: '/admin/rooms',
     label: 'Total kamar',
     color: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-500',

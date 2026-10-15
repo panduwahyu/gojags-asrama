@@ -66,7 +66,7 @@ const RELIGIONS = ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu']
           v-model="resident.religion"
           maxlength="50"
           required
-          list="agama-options"
+          list="religion-options"
           :aria-label="`Agama ${resident.name}`"
           :disabled="busy || Boolean(resident.room_id)"
         >

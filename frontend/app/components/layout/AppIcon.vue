@@ -4,8 +4,8 @@ defineProps<{
 }>()
 
 const paths: Record<string, string> = {
-  beranda: 'm3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z',
-  kamar: 'M3 18V6m18 12V9M3 15h18M3 9h7v6m0-6h8a3 3 0 0 1 3 3M3 18v3m18-3v3',
+  home: 'm3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z',
+  room: 'M3 18V6m18 12V9M3 15h18M3 9h7v6m0-6h8a3 3 0 0 1 3 3M3 18v3m18-3v3',
   laundry: [
     'M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z',
     'M7 6h1m3 0h6m0 8a5 5 0 1 1-10 0 5 5 0 0 1 10 0Zm-9 0c3-3 5 3 8 0',
@@ -32,6 +32,6 @@ const paths: Record<string, string> = {
     class="size-5 shrink-0"
     aria-hidden="true"
   >
-    <path :d="paths[name] || paths.beranda" />
+    <path :d="paths[name] || paths.home" />
   </svg>
 </template>

@@ -7,15 +7,15 @@ export type NavItem = {
 }
 
 const ADMIN_MENUS: NavItem[] = [
-  { label: 'Beranda', icon: 'beranda', to: '/admin' },
-  { label: 'Kamar', icon: 'kamar', to: '/admin/rooms' },
+  { label: 'Beranda', icon: 'home', to: '/admin' },
+  { label: 'Kamar', icon: 'room', to: '/admin/rooms' },
   { label: 'Laundry', icon: 'laundry', to: '/admin/laundry' },
   { label: 'Catering', icon: 'catering', to: '/admin/catering' },
 ]
 
 const RESIDENT_MENUS: NavItem[] = [
-  { label: 'Beranda', icon: 'beranda', to: '/resident' },
-  { label: 'Kamar', icon: 'kamar', to: '/resident/room' },
+  { label: 'Beranda', icon: 'home', to: '/resident' },
+  { label: 'Kamar', icon: 'room', to: '/resident/room' },
   { label: 'Laundry', icon: 'laundry', to: '/resident/laundry' },
   { label: 'Catering', icon: 'catering', to: '/resident/catering' },
 ]

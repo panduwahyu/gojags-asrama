@@ -52,7 +52,7 @@ async function transition(kind: 'check-in' | 'check-out') {
         </div>
 
         <div class="hidden sm:flex size-16 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/40">
-          <AppIcon name="kamar" class="size-8 text-indigo-600 dark:text-indigo-400" />
+          <AppIcon name="room" class="size-8 text-indigo-600 dark:text-indigo-400" />
         </div>
       </div>
 
@@ -98,7 +98,7 @@ async function transition(kind: 'check-in' | 'check-out') {
         class="mx-auto flex size-16 items-center justify-center rounded-2xl bg-slate-100
           text-slate-400 dark:bg-slate-800/60 dark:text-slate-500"
       >
-        <AppIcon name="kamar" class="size-8" />
+        <AppIcon name="room" class="size-8" />
       </div>
       <h2 class="mt-4 text-lg font-bold text-slate-900 dark:text-white">
         Belum ada alokasi kamar

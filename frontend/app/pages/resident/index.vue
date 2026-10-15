@@ -6,7 +6,7 @@ const { user } = useSession()
 const residentServices = [
   {
     to: '/resident/room',
-    icon: 'kamar',
+    icon: 'room',
     overline: 'KAMAR',
     title: 'Kamar & Check-in',
     description: 'Alokasi kamar, check-in, dan perizinan.',
