@@ -14,7 +14,12 @@ class RouteServiceProvider extends ServiceProvider
     public function boot(): void
     {
         RateLimiter::for('login', function (Request $request) {
-            return Limit::perMinute(5)->by(Str::lower((string) $request->input('email')));
+            $email = Str::lower((string) $request->input('email'));
+
+            return [
+                Limit::perMinute(5)->by('login:'.$email.'|'.$request->ip()),
+                Limit::perMinute((int) config('asrama.login_attempts_per_ip'))->by('login-ip:'.$request->ip()),
+            ];
         });
 
         $this->routes(function () {

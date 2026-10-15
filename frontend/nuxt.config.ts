@@ -16,7 +16,12 @@ export default defineNuxtConfig({
   },
   // Bundle Nuxt's renderer so its build-time modules resolve in Windows production builds.
   nitro: { externals: { inline: ['nuxt'] } },
-  runtimeConfig: { laravelBaseUrl: 'http://127.0.0.1:8000' },
+  runtimeConfig: {
+    laravelBaseUrl: 'http://127.0.0.1:8000',
+    // true hanya bila Nuxt berada di belakang reverse proxy (mis. nginx) yang MENIMPA X-Forwarded-For
+    // dengan IP klien ($remote_addr). Bawaan false: IP diambil dari koneksi langsung.
+    trustForwardedFor: false,
+  },
   app: {
     head: {
       htmlAttrs: { lang: 'id' },

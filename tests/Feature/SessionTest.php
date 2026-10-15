@@ -79,6 +79,43 @@ class SessionTest extends TestCase
         ])->assertOk();
     }
 
+    public function test_failed_logins_from_another_ip_do_not_lock_out_the_account_owner(): void
+    {
+        User::factory()->resident()->create([
+            'email' => 'victim@example.id',
+            'password' => 'secret123',
+        ]);
+
+        for ($attempt = 1; $attempt <= 5; $attempt++) {
+            $this->withHeader('X-Forwarded-For', '10.0.0.1')
+                ->postJson('/api/login', ['email' => 'victim@example.id', 'password' => 'wrong'])
+                ->assertUnprocessable();
+        }
+
+        $this->withHeader('X-Forwarded-For', '10.0.0.1')
+            ->postJson('/api/login', ['email' => 'victim@example.id', 'password' => 'wrong'])
+            ->assertTooManyRequests();
+
+        $this->withHeader('X-Forwarded-For', '10.0.0.2')
+            ->postJson('/api/login', ['email' => 'victim@example.id', 'password' => 'secret123'])
+            ->assertOk();
+    }
+
+    public function test_many_emails_from_one_ip_hit_the_per_ip_limit(): void
+    {
+        config(['asrama.login_attempts_per_ip' => 3]);
+
+        for ($attempt = 1; $attempt <= 3; $attempt++) {
+            $this->withHeader('X-Forwarded-For', '10.0.0.3')
+                ->postJson('/api/login', ['email' => "spray{$attempt}@example.id", 'password' => 'wrong'])
+                ->assertUnprocessable();
+        }
+
+        $this->withHeader('X-Forwarded-For', '10.0.0.3')
+            ->postJson('/api/login', ['email' => 'spray4@example.id', 'password' => 'wrong'])
+            ->assertTooManyRequests();
+    }
+
     public function test_logout_clears_authenticated_user(): void
     {
         $user = User::factory()->create();

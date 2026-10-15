@@ -7,11 +7,15 @@ use Illuminate\Http\Request;
 
 class TrustProxies extends Middleware
 {
-    protected $proxies;
+    /**
+     * Hanya proxy Nuxt di mesin yang sama. Laravel tidak boleh dapat diakses langsung dari luar.
+     *
+     * @var array<int, string>|string|null
+     */
+    protected $proxies = ['127.0.0.1', '::1'];
 
-    protected $headers = Request::HEADER_X_FORWARDED_FOR |
-        Request::HEADER_X_FORWARDED_HOST |
-        Request::HEADER_X_FORWARDED_PORT |
-        Request::HEADER_X_FORWARDED_PROTO |
-        Request::HEADER_X_FORWARDED_AWS_ELB;
+    /**
+     * Hanya alamat IP yang dipercaya; host/port/proto dari header tidak dipakai.
+     */
+    protected $headers = Request::HEADER_X_FORWARDED_FOR;
 }
