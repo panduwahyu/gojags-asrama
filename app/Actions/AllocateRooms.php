@@ -4,13 +4,12 @@ namespace App\Actions;
 
 use App\Enums\Role;
 use App\Models\Room;
-use App\Models\RoomSlot;
 use App\Models\Stay;
 use App\Models\User;
 use App\Support\RoomLocks;
+use App\Support\RoomOccupancy;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 
 class AllocateRooms
 {
@@ -32,24 +31,9 @@ class AllocateRooms
                 $user->religion = $this->normalize($user->religion);
             }
 
-            /** @var array<int, list<User>> $occupants */
-            $occupants = [];
-            $assignedIds = [];
-            /** @var array<int, int> $availableSlots */
-            $availableSlots = [];
-            foreach ($rooms as $room) {
-                $availableSlots[$room->id] = 0;
-            }
-            foreach ($slots as $slot) {
-                if ($slot->user_id !== null && isset($usersById[$slot->user_id])) {
-                    $occupants[$slot->room_id][] = $usersById[$slot->user_id];
-                    $assignedIds[$slot->user_id] = true;
-                } elseif ($slot->user_id === null && isset($availableSlots[$slot->room_id])) {
-                    $availableSlots[$slot->room_id]++;
-                }
-            }
+            $occupancy = new RoomOccupancy($rooms, $slots, $usersById);
 
-            $pending = $this->pendingResidents($users, $assignedIds);
+            $pending = $this->pendingResidents($users, $occupancy);
             $incomplete = $pending->filter(fn (User $user) => ! $this->hasCompleteProfile($user));
             $groups = $pending
                 ->diffKeys($incomplete)
@@ -60,10 +44,10 @@ class AllocateRooms
             $waiting = [];
 
             foreach ($groups as $cohort => $members) {
-                $homeFloor = $this->homeFloorFor((string) $cohort, $rooms, $occupants, $availableSlots);
+                $homeFloor = $this->homeFloorFor((string) $cohort, $occupancy);
 
                 foreach ($members as $resident) {
-                    $room = $this->findRoomFor($resident, $homeFloor, $rooms, $occupants, $availableSlots);
+                    $room = $this->findRoomFor($resident, $homeFloor, $occupancy);
 
                     if ($room === null) {
                         $waiting[] = ['id' => $resident->id, 'name' => $resident->name];
@@ -71,7 +55,7 @@ class AllocateRooms
                         continue;
                     }
 
-                    $this->assign($resident, $room, $slots, $occupants, $availableSlots);
+                    $occupancy->assign($resident, $room);
                     $allocated[] = [
                         'id' => $resident->id,
                         'name' => $resident->name,
@@ -94,10 +78,9 @@ class AllocateRooms
 
     /**
      * @param  Collection<int, User>  $users
-     * @param  array<int, bool>  $assignedIds
      * @return Collection<int, User>
      */
-    private function pendingResidents(Collection $users, array $assignedIds): Collection
+    private function pendingResidents(Collection $users, RoomOccupancy $occupancy): Collection
     {
         $departed = Stay::query()
             ->whereNotNull('checked_out_at')
@@ -108,27 +91,19 @@ class AllocateRooms
 
         return $users->filter(
             fn (User $user) => $user->role === Role::Resident
-                && ! isset($assignedIds[$user->id])
+                && ! $occupancy->isAssigned($user)
                 && ! isset($departed[$user->id])
         );
     }
 
-    /**
-     * @param  Collection<int, Room>  $rooms
-     * @param  array<int, list<User>>  $occupants
-     * @param  array<int, int>  $availableSlots
-     */
-    private function homeFloorFor(
-        string $cohort,
-        Collection $rooms,
-        array $occupants,
-        array $availableSlots
-    ): ?int {
+    private function homeFloorFor(string $cohort, RoomOccupancy $occupancy): ?int
+    {
         $floors = config('asrama.floors');
+        $rooms = $occupancy->rooms();
 
         $existingFloors = $rooms
             ->filter(
-                fn (Room $room) => collect($occupants[$room->id] ?? [])
+                fn (Room $room) => collect($occupancy->occupantsOf($room))
                     ->contains(fn (User $user) => $user->cohort === $cohort)
             )
             ->pluck('floor');
@@ -137,28 +112,18 @@ class AllocateRooms
         $unusedFloors = collect($floors)->filter(
             fn (int $floor) => ! $rooms
                 ->where('floor', $floor)
-                ->contains(fn (Room $room) => count($occupants[$room->id] ?? []) > 0)
+                ->contains(fn (Room $room) => count($occupancy->occupantsOf($room)) > 0)
         );
 
         $availableFloors = $rooms
-            ->filter(fn (Room $room) => ($availableSlots[$room->id] ?? 0) > 0)
+            ->filter(fn (Room $room) => $occupancy->hasFreeSlot($room))
             ->pluck('floor');
 
         return $existingFloors->max() ?? $unusedFloors->first() ?? $availableFloors->max();
     }
 
-    /**
-     * @param  Collection<int, Room>  $rooms
-     * @param  array<int, list<User>>  $occupants
-     * @param  array<int, int>  $availableSlots
-     */
-    private function findRoomFor(
-        User $resident,
-        ?int $homeFloor,
-        Collection $rooms,
-        array $occupants,
-        array $availableSlots
-    ): ?Room {
+    private function findRoomFor(User $resident, ?int $homeFloor, RoomOccupancy $occupancy): ?Room
+    {
         if ($homeFloor === null) {
             return null;
         }
@@ -168,11 +133,11 @@ class AllocateRooms
                 continue;
             }
 
-            $candidates = $rooms->where('floor', $floor)->filter(
-                function (Room $room) use ($occupants, $resident, $availableSlots) {
-                    $people = $occupants[$room->id] ?? [];
+            $candidates = $occupancy->rooms()->where('floor', $floor)->filter(
+                function (Room $room) use ($occupancy, $resident) {
+                    $people = $occupancy->occupantsOf($room);
 
-                    return ($availableSlots[$room->id] ?? 0) > 0
+                    return $occupancy->hasFreeSlot($room)
                         && collect($people)->every(
                             fn (User $person) => $person->gender === $resident->gender
                                 && $person->religion === $resident->religion
@@ -181,8 +146,8 @@ class AllocateRooms
             );
 
             // Isi kamar terisi sebagian yang cocok sebelum membuka kamar kosong.
-            $selected = $candidates->sortBy(function (Room $room) use ($occupants, $resident) {
-                $people = $occupants[$room->id] ?? [];
+            $selected = $candidates->sortBy(function (Room $room) use ($occupancy, $resident) {
+                $people = $occupancy->occupantsOf($room);
                 $priority = ! $people
                     ? 2
                     : ($people[0]->cohort === $resident->cohort ? 0 : 1);
@@ -196,31 +161,6 @@ class AllocateRooms
         }
 
         return null;
-    }
-
-    /**
-     * @param  Collection<int, RoomSlot>  $slots
-     * @param  array<int, list<User>>  $occupants
-     * @param  array<int, int>  $availableSlots
-     */
-    private function assign(
-        User $resident,
-        Room $room,
-        Collection $slots,
-        array &$occupants,
-        array &$availableSlots
-    ): void {
-        $slot = $slots->first(
-            fn (RoomSlot $item) => $item->room_id === $room->id && $item->user_id === null
-        );
-
-        if ($slot === null) {
-            throw new RuntimeException('Slot kamar tidak konsisten.');
-        }
-
-        $slot->update(['user_id' => $resident->id, 'checked_in_at' => null]);
-        $occupants[$room->id][] = $resident;
-        $availableSlots[$room->id] = max(0, ($availableSlots[$room->id] ?? 0) - 1);
     }
 
     private function hasCompleteProfile(User $user): bool
