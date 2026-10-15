@@ -34,11 +34,11 @@ npm --prefix frontend run test:smoke   # node scripts/smoke.mjs terhadap server 
 
 ### Alur Permintaan
 
-Peramban hanya berkomunikasi dengan Nuxt. `frontend/server/routes/api/[...path].ts` meneruskan permintaan `/api/<path>` ke `${laravelBaseUrl}/api/<path>` beserta query string (hanya mengizinkan path yang cocok dengan `^[a-z0-9/-]+$`, memaksa `Accept: application/json`, dan menyetel `Cache-Control: no-store`).
+Peramban hanya berkomunikasi dengan Nuxt. `frontend/server/routes/api/[...path].ts` meneruskan permintaan `/api/<path>` ke `${laravelBaseUrl}/api/<path>` beserta query string (hanya mengizinkan path yang cocok dengan `^[a-z0-9/-]+$`, memaksa `Accept: application/json`, dan menyetel `Cache-Control: no-store`, serta menimpa `X-Forwarded-For` dengan IP klien).
 
 - Seluruh rute JSON berada di `routes/api.php` yang dimuat oleh `RouteServiceProvider` dengan prefiks `/api` dan grup middleware `['web', 'cache.headers:no_store']`, sehingga sesi dan CSRF tetap berbasis cookie pada satu origin.
 - `GET /api/session` mengembalikan `{ csrfToken, user }`.
-- `POST /api/login` dilindungi rate limiter `login` (maksimal 5 percobaan per menit per kombinasi email).
+- `POST /api/login` dilindungi rate limiter `login` (maksimal 5 percobaan per menit per kombinasi email + IP klien, dan batas longgar per IP dari config/asrama.php; IP diteruskan proxy Nuxt lewat X-Forwarded-For).
 - Di frontend, `useSession()` menyimpan state sesi, `useApi()` mengirim permintaan `GET`/`POST`/`PATCH`/`PUT`/`DELETE`
   ke `/api/...` dengan header `X-CSRF-TOKEN` otomatis (serta memuat ulang sesi dan mengulang sekali bila menerima `419`),
   dan `useAction()` mengelola state `busy`, `error`, dan `success`.

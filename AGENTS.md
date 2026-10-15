@@ -112,7 +112,7 @@ Panduan konteks arsitektur, alur kerja pengembangan, aturan domain, dan konvensi
 1. **Autentikasi & Otorisasi Peran (`role`)**:
    - Setiap user memiliki `role` bernilai `'admin'` (`Role::Admin`) atau `'resident'` (`Role::Resident`).
    - Middleware `role:admin` dan `role:resident` (`App\Http\Middleware\RequireRole`) membatasi akses endpoint.
-   - Endpoint login dibatasi oleh rate limiter `login` (maksimal 5 percobaan per menit per kombinasi email).
+   - Endpoint login dibatasi oleh rate limiter `login` (maksimal 5 percobaan per menit per kombinasi email + IP klien, dan batas longgar per IP dari config/asrama.php; IP diteruskan proxy Nuxt lewat X-Forwarded-For).
    - Di frontend, `auth.global.ts` membatasi navigasi berdasarkan awalan URL (`/admin` dan `/resident`).
    - Rute JSON di `routes/api.php` berjalan di bawah grup middleware `web` agar mendapatkan proteksi session dan CSRF.
 
