@@ -94,6 +94,7 @@ Peramban hanya berkomunikasi dengan Nuxt. `frontend/server/routes/api/[...path].
 - `App\Support\TableQuery` menyatukan pencarian (`q`), pengurutan yang di-whitelist (`sort`, `direction`), dan paginasi (`per_page` 10/50/100); padanan kliennya adalah composable `useTable<T>(path)` dan komponen generik `DataTable.vue`.
 - Status kamar (`RoomStatus`: `empty`, `assigned`, `occupied`, `full`) dihitung langsung dari `room_slots` tanpa kolom status di tabel `rooms`.
 - `App\Support\RoomLocks` mengunci tabel dengan urutan tetap `rooms` → `users` → `room_slots` di dalam transaksi untuk mencegah deadlock pada alokasi otomatis, pembaruan profil penghuni, check-in, dan check-out.
+- `App\Models\Concerns\VisibleToOwner` menyediakan scope `visibleTo($user)`: penghuni hanya melihat miliknya, admin melihat semuanya (dipakai `LeavePermit`, `Complaint`, `LaundryOrder`).
 
 ### Pengujian
 

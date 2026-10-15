@@ -49,6 +49,7 @@ app/
   Enums/              Role, Gender, RoomStatus, LaundryStatus, CateringStatus, PermitStatus, ComplaintStatus
   Models/             User, Room, RoomSlot, Stay, LaundryOrder, CateringMenu, CateringRating,
                       LeavePermit, Complaint
+  Models/Concerns/    VisibleToOwner
   Actions/            AllocateRooms, CheckIn, CheckOut, UpdateResidentProfile
   Support/            TableQuery, DateFormat, RoomLocks, RoomOccupancy
   Http/
