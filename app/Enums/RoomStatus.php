@@ -19,7 +19,7 @@ enum RoomStatus: string
         };
     }
 
-    public static function fromCounts(int $assigned, int $checkedIn): self
+    public static function fromCounts(int $assigned, int $checkedIn, int $capacity): self
     {
         if ($assigned === 0) {
             return self::Empty;
@@ -29,7 +29,7 @@ enum RoomStatus: string
             return self::Assigned;
         }
 
-        if ($checkedIn >= 2) {
+        if ($checkedIn >= $capacity) {
             return self::Full;
         }
 

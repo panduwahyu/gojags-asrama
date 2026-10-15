@@ -44,14 +44,16 @@ class Room extends Model
     public function scopeOrderByStatus(Builder $query, string $direction): void
     {
         $dir = strtolower($direction) === 'asc' ? 'ASC' : 'DESC';
+        $capacity = (int) config('asrama.room_capacity');
 
         $query->orderByRaw(
             "CASE
                 WHEN assigned_count = 0 THEN 0
                 WHEN assigned_count > checked_in_count THEN 1
-                WHEN checked_in_count >= 2 THEN 3
+                WHEN checked_in_count >= ? THEN 3
                 ELSE 2
-            END {$dir}"
+            END {$dir}",
+            [$capacity]
         );
     }
 
@@ -69,7 +71,11 @@ class Room extends Model
     protected function status(): Attribute
     {
         return Attribute::get(
-            fn () => RoomStatus::fromCounts((int) $this->assigned_count, (int) $this->checked_in_count)
+            fn () => RoomStatus::fromCounts(
+                (int) $this->assigned_count,
+                (int) $this->checked_in_count,
+                (int) config('asrama.room_capacity')
+            )
         );
     }
 }
