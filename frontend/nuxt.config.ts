@@ -22,6 +22,16 @@ export default defineNuxtConfig({
     // dengan IP klien ($remote_addr). Bawaan false: IP diambil dari koneksi langsung.
     trustForwardedFor: false,
   },
+  // Halaman admin tidak boleh disisipkan dalam iframe situs lain (clickjacking).
+  routeRules: {
+    '/**': {
+      headers: {
+        'X-Frame-Options': 'DENY',
+        'X-Content-Type-Options': 'nosniff',
+        'Referrer-Policy': 'same-origin',
+      },
+    },
+  },
   app: {
     head: {
       htmlAttrs: { lang: 'id' },
