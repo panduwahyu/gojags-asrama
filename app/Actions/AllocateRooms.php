@@ -35,10 +35,17 @@ class AllocateRooms
             /** @var array<int, list<User>> $occupants */
             $occupants = [];
             $assignedIds = [];
+            /** @var array<int, int> $availableSlots */
+            $availableSlots = [];
+            foreach ($rooms as $room) {
+                $availableSlots[$room->id] = 0;
+            }
             foreach ($slots as $slot) {
                 if ($slot->user_id !== null && isset($usersById[$slot->user_id])) {
                     $occupants[$slot->room_id][] = $usersById[$slot->user_id];
                     $assignedIds[$slot->user_id] = true;
+                } elseif ($slot->user_id === null && isset($availableSlots[$slot->room_id])) {
+                    $availableSlots[$slot->room_id]++;
                 }
             }
 
@@ -53,10 +60,10 @@ class AllocateRooms
             $waiting = [];
 
             foreach ($groups as $cohort => $members) {
-                $homeFloor = $this->homeFloorFor((string) $cohort, $rooms, $occupants);
+                $homeFloor = $this->homeFloorFor((string) $cohort, $rooms, $occupants, $availableSlots);
 
                 foreach ($members as $resident) {
-                    $room = $this->findRoomFor($resident, $homeFloor, $rooms, $occupants);
+                    $room = $this->findRoomFor($resident, $homeFloor, $rooms, $occupants, $availableSlots);
 
                     if ($room === null) {
                         $waiting[] = ['id' => $resident->id, 'name' => $resident->name];
@@ -64,7 +71,7 @@ class AllocateRooms
                         continue;
                     }
 
-                    $this->assign($resident, $room, $slots, $occupants);
+                    $this->assign($resident, $room, $slots, $occupants, $availableSlots);
                     $allocated[] = [
                         'id' => $resident->id,
                         'name' => $resident->name,
@@ -109,10 +116,14 @@ class AllocateRooms
     /**
      * @param  Collection<int, Room>  $rooms
      * @param  array<int, list<User>>  $occupants
+     * @param  array<int, int>  $availableSlots
      */
-    private function homeFloorFor(string $cohort, Collection $rooms, array $occupants): ?int
-    {
-        $capacity = (int) config('asrama.room_capacity');
+    private function homeFloorFor(
+        string $cohort,
+        Collection $rooms,
+        array $occupants,
+        array $availableSlots
+    ): ?int {
         $floors = config('asrama.floors');
 
         $existingFloors = $rooms
@@ -130,7 +141,7 @@ class AllocateRooms
         );
 
         $availableFloors = $rooms
-            ->filter(fn (Room $room) => count($occupants[$room->id] ?? []) < $capacity)
+            ->filter(fn (Room $room) => ($availableSlots[$room->id] ?? 0) > 0)
             ->pluck('floor');
 
         return $existingFloors->max() ?? $unusedFloors->first() ?? $availableFloors->max();
@@ -139,18 +150,18 @@ class AllocateRooms
     /**
      * @param  Collection<int, Room>  $rooms
      * @param  array<int, list<User>>  $occupants
+     * @param  array<int, int>  $availableSlots
      */
     private function findRoomFor(
         User $resident,
         ?int $homeFloor,
         Collection $rooms,
-        array $occupants
+        array $occupants,
+        array $availableSlots
     ): ?Room {
         if ($homeFloor === null) {
             return null;
         }
-
-        $capacity = (int) config('asrama.room_capacity');
 
         foreach (config('asrama.floors') as $floor) {
             if ($floor > $homeFloor) {
@@ -158,10 +169,10 @@ class AllocateRooms
             }
 
             $candidates = $rooms->where('floor', $floor)->filter(
-                function (Room $room) use ($occupants, $resident, $capacity) {
+                function (Room $room) use ($occupants, $resident, $availableSlots) {
                     $people = $occupants[$room->id] ?? [];
 
-                    return count($people) < $capacity
+                    return ($availableSlots[$room->id] ?? 0) > 0
                         && collect($people)->every(
                             fn (User $person) => $person->gender === $resident->gender
                                 && $person->religion === $resident->religion
@@ -190,12 +201,14 @@ class AllocateRooms
     /**
      * @param  Collection<int, RoomSlot>  $slots
      * @param  array<int, list<User>>  $occupants
+     * @param  array<int, int>  $availableSlots
      */
     private function assign(
         User $resident,
         Room $room,
         Collection $slots,
-        array &$occupants
+        array &$occupants,
+        array &$availableSlots
     ): void {
         $slot = $slots->first(
             fn (RoomSlot $item) => $item->room_id === $room->id && $item->user_id === null
@@ -207,6 +220,7 @@ class AllocateRooms
 
         $slot->update(['user_id' => $resident->id, 'checked_in_at' => null]);
         $occupants[$room->id][] = $resident;
+        $availableSlots[$room->id] = max(0, ($availableSlots[$room->id] ?? 0) - 1);
     }
 
     private function hasCompleteProfile(User $user): bool

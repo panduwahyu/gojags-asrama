@@ -362,4 +362,41 @@ class RoomAllocationTest extends TestCase
         $this->assertSame('501', $response->json('allocated.0.room'));
         $this->assertSame('501', $response->json('allocated.1.room'));
     }
+
+    public function test_allocation_succeeds_when_capacity_exceeds_physical_slots(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $room = Room::factory()->create(['number' => '501', 'floor' => 5]);
+        $room->slots()->createMany([['position' => 1], ['position' => 2]]);
+
+        config(['asrama.room_capacity' => 3]);
+
+        User::factory()->resident()->profiled('64', Gender::Male, 'islam')->count(3)->create();
+
+        $response = $this->actingAs($admin)
+            ->postJson('/api/rooms/allocate')
+            ->assertOk();
+
+        $this->assertCount(2, $response->json('allocated'));
+        $this->assertCount(1, $response->json('waiting'));
+    }
+
+    public function test_allocation_skips_room_without_any_slots(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        Room::factory()->create(['number' => '501', 'floor' => 5]);
+
+        $roomWithSlots = Room::factory()->create(['number' => '502', 'floor' => 5]);
+        $roomWithSlots->slots()->createMany([['position' => 1], ['position' => 2]]);
+
+        User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create();
+
+        $response = $this->actingAs($admin)
+            ->postJson('/api/rooms/allocate')
+            ->assertOk();
+
+        $this->assertSame('502', $response->json('allocated.0.room'));
+    }
 }
