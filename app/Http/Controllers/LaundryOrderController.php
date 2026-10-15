@@ -41,12 +41,7 @@ class LaundryOrderController extends Controller
 
     public function update(UpdateLaundryOrderRequest $request, LaundryOrder $order): JsonResponse
     {
-        $validated = $request->validated();
-
-        $order->forceFill([
-            'status' => LaundryStatus::from($validated['status']),
-            'cost' => array_key_exists('cost', $validated) ? $validated['cost'] : $order->cost,
-        ])->save();
+        $order->forceFill($request->validated())->save();
 
         return $this->message('Status berhasil diperbarui.');
     }

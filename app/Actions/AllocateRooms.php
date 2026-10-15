@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\DB;
 
 class AllocateRooms
 {
+    private const PRIORITY_SAME_COHORT = 0;
+
+    private const PRIORITY_OTHER_COHORT = 1;
+
+    private const PRIORITY_EMPTY_ROOM = 2;
+
     /**
      * @return array{
      *     allocated: list<array{id: int, name: string, room: string, floor: int}>,
@@ -133,27 +139,11 @@ class AllocateRooms
                 continue;
             }
 
-            $candidates = $occupancy->rooms()->where('floor', $floor)->filter(
-                function (Room $room) use ($occupancy, $resident) {
-                    $people = $occupancy->occupantsOf($room);
-
-                    return $occupancy->hasFreeSlot($room)
-                        && collect($people)->every(
-                            fn (User $person) => $person->gender === $resident->gender
-                                && $person->religion === $resident->religion
-                        );
-                }
-            );
-
-            // Isi kamar terisi sebagian yang cocok sebelum membuka kamar kosong.
-            $selected = $candidates->sortBy(function (Room $room) use ($occupancy, $resident) {
-                $people = $occupancy->occupantsOf($room);
-                $priority = ! $people
-                    ? 2
-                    : ($people[0]->cohort === $resident->cohort ? 0 : 1);
-
-                return [$priority, $room->number];
-            })->first();
+            $selected = $occupancy->rooms()
+                ->where('floor', $floor)
+                ->filter(fn (Room $room) => $this->canHouse($room, $resident, $occupancy))
+                ->sortBy(fn (Room $room) => [$this->fillPriority($room, $resident, $occupancy), $room->number])
+                ->first();
 
             if ($selected !== null) {
                 return $selected;
@@ -161,6 +151,29 @@ class AllocateRooms
         }
 
         return null;
+    }
+
+    private function canHouse(Room $room, User $resident, RoomOccupancy $occupancy): bool
+    {
+        return $occupancy->hasFreeSlot($room)
+            && collect($occupancy->occupantsOf($room))->every(
+                fn (User $person) => $person->gender === $resident->gender
+                    && $person->religion === $resident->religion
+            );
+    }
+
+    /** Isi kamar terisi sebagian yang cocok sebelum membuka kamar kosong. */
+    private function fillPriority(Room $room, User $resident, RoomOccupancy $occupancy): int
+    {
+        $people = $occupancy->occupantsOf($room);
+
+        if ($people === []) {
+            return self::PRIORITY_EMPTY_ROOM;
+        }
+
+        return $people[0]->cohort === $resident->cohort
+            ? self::PRIORITY_SAME_COHORT
+            : self::PRIORITY_OTHER_COHORT;
     }
 
     private function hasCompleteProfile(User $user): bool
