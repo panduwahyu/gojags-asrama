@@ -58,7 +58,7 @@ const columns = computed(() => [
       <button
         v-if="row.status === 'pending'"
         type="button"
-        class="btn whitespace-nowrap py-1! px-2.5! text-xs font-semibold"
+        class="btn btn-sm whitespace-nowrap"
         :disabled="busy"
         @click="emit('resolve', row)"
       >

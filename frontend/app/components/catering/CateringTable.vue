@@ -97,7 +97,7 @@ function onDelete(menu: CateringMenu) {
           <template v-if="confirmingDeleteId !== row.id">
             <button
               type="button"
-              class="btn-secondary py-1! px-2.5! text-xs"
+              class="btn-secondary btn-sm"
               :disabled="busy"
               @click="emit('edit', row)"
             >
@@ -105,7 +105,7 @@ function onDelete(menu: CateringMenu) {
             </button>
             <button
               type="button"
-              class="btn-danger py-1! px-2.5! text-xs"
+              class="btn-danger btn-sm"
               :disabled="busy"
               @click="confirmingDeleteId = row.id"
             >
@@ -115,7 +115,7 @@ function onDelete(menu: CateringMenu) {
           <template v-else>
             <button
               type="button"
-              class="btn-danger py-1! px-2.5! text-xs font-semibold"
+              class="btn-danger btn-sm"
               :disabled="busy"
               @click="onDelete(row)"
             >

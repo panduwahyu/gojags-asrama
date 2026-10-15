@@ -113,4 +113,8 @@
   .overline {
     @apply text-[10px] font-bold tracking-[0.18em] text-indigo-600 dark:text-indigo-400;
   }
+  /* Ukuran ringkas untuk tombol aksi di baris tabel; dipakai bersama .btn / .btn-secondary / .btn-danger. */
+  .btn-sm {
+    @apply px-2.5! py-1! text-xs!;
+  }
 }
