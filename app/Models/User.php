@@ -76,6 +76,12 @@ class User extends Authenticatable
         $query->where('role', Role::Resident);
     }
 
+    /** Angkatan dan agama dibandingkan tanpa beda huruf besar/kecil dan spasi berlebih. */
+    public static function normalizeProfileText(?string $value): string
+    {
+        return mb_strtolower(trim((string) preg_replace('/\s+/u', ' ', $value ?? '')));
+    }
+
     public static function nameOf(string $table): Builder
     {
         return static::select('name')->whereColumn('users.id', $table.'.user_id');

@@ -27,8 +27,8 @@ class AllocateRooms
 
             $usersById = $users->keyBy('id');
             foreach ($usersById as $user) {
-                $user->cohort = $this->normalize($user->cohort);
-                $user->religion = $this->normalize($user->religion);
+                $user->cohort = User::normalizeProfileText($user->cohort);
+                $user->religion = User::normalizeProfileText($user->religion);
             }
 
             $occupancy = new RoomOccupancy($rooms, $slots, $usersById);
@@ -168,10 +168,5 @@ class AllocateRooms
         return $user->cohort !== ''
             && $user->gender !== null
             && $user->religion !== '';
-    }
-
-    private function normalize(?string $value): string
-    {
-        return mb_strtolower(trim((string) preg_replace('/\s+/u', ' ', $value ?? '')));
     }
 }

@@ -18,8 +18,8 @@ class UpdateResidentProfile
     {
         abort_unless($resident->role === Role::Resident, 404);
 
-        $cohort = $this->normalize($profile['cohort']);
-        $religion = $this->normalize($profile['religion']);
+        $cohort = User::normalizeProfileText($profile['cohort']);
+        $religion = User::normalizeProfileText($profile['religion']);
 
         if ($cohort === '' || $religion === '') {
             throw ValidationException::withMessages([
@@ -46,10 +46,5 @@ class UpdateResidentProfile
                 'religion' => $religion,
             ]);
         }, 3);
-    }
-
-    private function normalize(string $value): string
-    {
-        return mb_strtolower(trim((string) preg_replace('/\s+/u', ' ', $value)));
     }
 }
