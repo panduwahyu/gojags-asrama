@@ -41,20 +41,12 @@ const services = [
   <div>
     <DashboardHero />
 
-    <div
+    <AlertMessage
       v-if="error"
-      role="alert"
-      class="mt-5 rounded-lg bg-red-50 p-4 text-sm text-red-700
-        dark:bg-red-950/50 dark:text-red-300"
-    >
-      Data tidak dapat dimuat. Pastikan Laravel berjalan.
-      <button
-        class="underline"
-        @click="refresh()"
-      >
-        Coba lagi
-      </button>
-    </div>
+      error="Data tidak dapat dimuat. Pastikan Laravel berjalan."
+      retryable
+      @retry="refresh()"
+    />
 
     <section
       class="mt-8 grid gap-5 md:grid-cols-3"
