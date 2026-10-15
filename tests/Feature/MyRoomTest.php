@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Actions\CheckIn;
+use App\Actions\CheckOut;
 use App\Enums\RoomStatus;
 use App\Models\Room;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class MyRoomTest extends TestCase
@@ -134,5 +137,52 @@ class MyRoomTest extends TestCase
         $slot->refresh();
         $this->assertSame($resident->id, $slot->user_id);
         $this->assertNotNull($slot->checked_in_at);
+    }
+
+    public function test_check_in_action_throws_validation_exception_when_resident_has_no_room_slot(): void
+    {
+        $resident = User::factory()->resident()->create();
+        $action = new CheckIn;
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Anda belum memiliki alokasi kamar.');
+
+        $action->handle($resident);
+    }
+
+    public function test_check_in_action_throws_validation_exception_when_already_checked_in(): void
+    {
+        $resident = User::factory()->resident()->create();
+        $room = Room::factory()->create();
+        $room->slots()->create([
+            'position' => 1,
+            'user_id' => $resident->id,
+            'checked_in_at' => now(),
+        ]);
+
+        $action = new CheckIn;
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Anda sudah check-in.');
+
+        $action->handle($resident);
+    }
+
+    public function test_check_out_action_throws_validation_exception_when_not_checked_in(): void
+    {
+        $resident = User::factory()->resident()->create();
+        $room = Room::factory()->create();
+        $room->slots()->create([
+            'position' => 1,
+            'user_id' => $resident->id,
+            'checked_in_at' => null,
+        ]);
+
+        $action = new CheckOut;
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Anda harus check-in sebelum check-out.');
+
+        $action->handle($resident);
     }
 }

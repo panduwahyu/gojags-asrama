@@ -221,13 +221,18 @@ class CateringTest extends TestCase
     {
         $admin = User::factory()->admin()->create();
         $resident = User::factory()->resident()->create();
+        $secondResident = User::factory()->resident()->create();
         $menu = CateringMenu::factory()->create();
         $menu->ratings()->create([
             'user_id' => $resident->id,
             'rating' => 4,
         ]);
+        $menu->ratings()->create([
+            'user_id' => $secondResident->id,
+            'rating' => 5,
+        ]);
 
-        $this->assertSame(1, CateringRating::count());
+        $this->assertSame(2, CateringRating::count());
 
         $this->actingAs($admin)
             ->deleteJson("/api/catering-menus/{$menu->id}")

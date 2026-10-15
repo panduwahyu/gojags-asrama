@@ -6,7 +6,7 @@ use App\Models\CateringMenu;
 use Carbon\Carbon;
 use Tests\TestCase;
 
-class CateringMenuUnitTest extends TestCase
+class CateringMenuModelTest extends TestCase
 {
     public function test_rating_closes_at_end_of_day_wib(): void
     {

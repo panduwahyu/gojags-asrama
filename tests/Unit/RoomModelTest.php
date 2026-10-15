@@ -6,7 +6,7 @@ use App\Enums\RoomStatus;
 use App\Models\Room;
 use Tests\TestCase;
 
-class RoomModelUnitTest extends TestCase
+class RoomModelTest extends TestCase
 {
     public function test_room_status_accessor_reflects_counts(): void
     {
