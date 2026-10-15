@@ -56,17 +56,27 @@ class SessionTest extends TestCase
 
     public function test_sixth_login_attempt_within_a_minute_returns_429(): void
     {
+        $userB = User::factory()->resident()->create([
+            'email' => 'b@example.id',
+            'password' => 'secret123',
+        ]);
+
         for ($attempt = 1; $attempt <= 5; $attempt++) {
             $this->postJson('/api/login', [
-                'email' => 'nobody@example.id',
+                'email' => 'a@example.id',
                 'password' => 'wrong',
             ])->assertUnprocessable();
         }
 
         $this->postJson('/api/login', [
-            'email' => 'nobody@example.id',
+            'email' => 'A@Example.ID',
             'password' => 'wrong',
         ])->assertTooManyRequests();
+
+        $this->postJson('/api/login', [
+            'email' => 'b@example.id',
+            'password' => 'secret123',
+        ])->assertOk();
     }
 
     public function test_logout_clears_authenticated_user(): void
