@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { STATE } from './accounts'
+import { captureScreenshot } from './screenshots'
 
 test('dashboard admin menampilkan metrik dan tautan navigasi ke tiap layanan', async ({ browser }) => {
   const adminContext = await browser.newContext({ storageState: STATE.admin })
@@ -8,6 +9,14 @@ test('dashboard admin menampilkan metrik dan tautan navigasi ke tiap layanan', a
   await page.goto('/admin')
   const summary = page.getByRole('region', { name: 'Ringkasan layanan' })
   await expect(summary).toBeVisible()
+
+  // Tangkap screenshot dashboard admin mode terang
+  await captureScreenshot(page, 'panduan/admin/03-dashboard-admin-overview.png')
+
+  // Tangkap screenshot dashboard admin mode gelap
+  await page.locator('[data-theme-toggle]').first().click()
+  await captureScreenshot(page, 'panduan/admin/04-dashboard-admin-dark.png')
+  await page.locator('[data-theme-toggle]').first().click()
 
   // Verifikasi 3 kartu metrik utama
   await expect(summary.getByText('Total kamar')).toBeVisible()
@@ -29,6 +38,14 @@ test('dashboard penghuni menampilkan salam personal dan kartu layanan', async ({
   await expect(page.getByText('Selamat datang kembali')).toBeVisible()
   await expect(page.getByText('Pandu Wahyu Aji')).toBeVisible()
 
+  // Tangkap screenshot dashboard penghuni mode terang
+  await captureScreenshot(page, 'panduan/resident/03-dashboard-penghuni-overview.png')
+
+  // Tangkap screenshot dashboard penghuni mode gelap
+  await page.locator('[data-theme-toggle]').first().click()
+  await captureScreenshot(page, 'panduan/resident/04-dashboard-penghuni-dark.png')
+  await page.locator('[data-theme-toggle]').first().click()
+
   // Verifikasi kartu layanan penghuni
   await expect(page.getByRole('heading', { name: 'Kamar & Check-in' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Cuci Pakaian' })).toBeVisible()
@@ -47,7 +64,7 @@ test('tombol tema berganti antara mode terang dan gelap serta bertahan setelah r
 
   await page.goto('/resident')
   const html = page.locator('html')
-  const toggle = page.getByRole('button', { name: 'Ganti tema' })
+  const toggle = page.locator('[data-theme-toggle]').first()
 
   // Pastikan tema awal (terang)
   await expect(html).not.toHaveClass(/\bdark\b/)
@@ -61,7 +78,7 @@ test('tombol tema berganti antara mode terang dan gelap serta bertahan setelah r
   await expect(html).toHaveClass(/\bdark\b/)
 
   // Kembalikan ke mode terang
-  await page.getByRole('button', { name: 'Ganti tema' }).click()
+  await toggle.click()
   await expect(html).not.toHaveClass(/\bdark\b/)
 
   await residentContext.close()

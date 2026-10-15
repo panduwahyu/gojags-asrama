@@ -1,9 +1,19 @@
 import { expect, test } from '@playwright/test'
 import { ACCOUNTS } from './accounts'
+import { captureScreenshot } from './screenshots'
 
 test('admin dan penghuni dapat login, logout, dan dicegah mengakses rute tanpa izin', async ({ page }) => {
-  // 1. Admin login dan logout
+  // 1. Tampilan login mode terang dan gelap
   await page.goto('/login')
+  await expect(page.getByRole('button', { name: 'Masuk' })).toBeVisible()
+  await captureScreenshot(page, 'panduan/admin/01-login-admin-light.png')
+  await captureScreenshot(page, 'panduan/resident/01-login-penghuni-light.png')
+
+  await page.evaluate(() => document.documentElement.classList.add('dark'))
+  await captureScreenshot(page, 'panduan/admin/02-login-admin-dark.png')
+  await page.evaluate(() => document.documentElement.classList.remove('dark'))
+
+  // Admin login dan logout
   await page.getByLabel('Email').fill(ACCOUNTS.admin.email)
   await page.getByLabel('Kata sandi').fill(ACCOUNTS.admin.password)
   await page.getByRole('button', { name: 'Masuk' }).click()
@@ -34,10 +44,12 @@ test('admin dan penghuni dapat login, logout, dan dicegah mengakses rute tanpa i
 
 test('menampilkan pesan validasi error saat kredensial salah', async ({ page }) => {
   await page.goto('/login')
+  await expect(page.getByRole('button', { name: 'Masuk' })).toBeVisible()
   await page.getByLabel('Email').fill('salah@example.id')
   await page.getByLabel('Kata sandi').fill('katasandikeliru')
   await page.getByRole('button', { name: 'Masuk' }).click()
 
-  await expect(page.getByRole('alert')).toContainText('Email atau kata sandi salah.')
+  await expect(page.getByRole('alert')).toContainText('tidak sesuai')
+  await captureScreenshot(page, 'panduan/resident/02-login-validasi-error.png')
   await expect(page).toHaveURL('/login')
 })

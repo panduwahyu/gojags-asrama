@@ -11,6 +11,11 @@ export default defineConfig({
     { name: 'setup', testMatch: 'global.setup.ts' },
     { name: 'e2e', testMatch: '*.spec.ts', dependencies: ['setup'] },
   ],
+  use: {
+    ...sharedConfig.use,
+    screenshot: 'on',
+    viewport: { width: 1280, height: 800 },
+  },
   webServer: [
     {
       command: `php artisan serve --env=e2e --port=${LARAVEL_PORT}`,

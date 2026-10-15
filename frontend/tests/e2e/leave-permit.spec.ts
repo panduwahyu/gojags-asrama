@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { STATE } from './accounts'
+import { captureScreenshot } from './screenshots'
 
 test('penghuni mengajukan izin keluar, mengedit alasan, lalu admin menyetujuinya', async ({ browser }) => {
   const residentContext = await browser.newContext({ storageState: STATE.resident })
@@ -8,11 +9,13 @@ test('penghuni mengajukan izin keluar, mengedit alasan, lalu admin menyetujuinya
   const adminPage = await adminContext.newPage()
 
   const uniqueReason = `Izin E2E ${Date.now()}`
-  const editedReason = `${uniqueReason} (revisi keperluan dinas)`
+  const editedReason = `${uniqueReason} revisi dinas`
 
   // 1. Penghuni mengajukan izin
   await residentPage.goto('/resident/room')
   const residentSection = residentPage.getByRole('region', { name: 'Izin keluar' })
+  await expect(residentSection).toBeVisible()
+
   await residentSection.getByLabel('Waktu keluar (WIB)').fill('2026-10-15T08:00')
   await residentSection.getByLabel('Waktu kembali (WIB)').fill('2026-10-15T17:00')
   await residentSection.getByLabel('Alasan').fill(uniqueReason)
@@ -20,10 +23,12 @@ test('penghuni mengajukan izin keluar, mengedit alasan, lalu admin menyetujuinya
 
   const pendingRow = residentSection.getByRole('row', { name: new RegExp(uniqueReason) })
   await expect(pendingRow).toBeVisible()
+  await captureScreenshot(residentPage, 'panduan/resident/12-izin-keluar-pengajuan-berhasil.png')
 
   // 2. Penghuni mengedit alasan izin sebelum ditinjau admin
   await pendingRow.getByRole('button', { name: 'Edit' }).click()
   await residentSection.getByLabel('Alasan').fill(editedReason)
+  await captureScreenshot(residentPage, 'panduan/resident/13-izin-keluar-edit-alasan.png')
   await residentSection.getByRole('button', { name: 'Simpan perubahan izin' }).click()
 
   const updatedResidentRow = residentSection.getByRole('row', { name: new RegExp(editedReason) })
@@ -32,16 +37,19 @@ test('penghuni mengajukan izin keluar, mengedit alasan, lalu admin menyetujuinya
   // 3. Admin meninjau dan menyetujui izin
   await adminPage.goto('/admin/rooms')
   const adminSection = adminPage.getByRole('region', { name: 'Izin keluar' })
+  await expect(adminSection).toBeVisible()
   const adminRow = adminSection.getByRole('row', { name: new RegExp(editedReason) })
   await expect(adminRow).toBeVisible()
   await adminRow.getByRole('button', { name: 'Setujui' }).click()
   await expect(adminRow).toContainText('Disetujui')
+  await captureScreenshot(adminPage, 'panduan/admin/13-izin-keluar-persetujuan.png')
 
-  // 4. Penghuni memeriksa status yang disetujui (tombol edit tidak lagi muncul)
+  // 4. Penghuni memeriksa status yang disetujui
   await residentPage.reload()
   const approvedRow = residentSection.getByRole('row', { name: new RegExp(editedReason) })
   await expect(approvedRow).toContainText('Disetujui')
   await expect(approvedRow.getByRole('button', { name: 'Edit' })).toHaveCount(0)
+  await captureScreenshot(residentPage, 'panduan/resident/14-izin-keluar-status-disetujui.png')
 
   await residentContext.close()
   await adminContext.close()
@@ -57,6 +65,8 @@ test('admin dapat menolak permohonan izin keluar', async ({ browser }) => {
 
   await residentPage.goto('/resident/room')
   const residentSection = residentPage.getByRole('region', { name: 'Izin keluar' })
+  await expect(residentSection).toBeVisible()
+
   await residentSection.getByLabel('Waktu keluar (WIB)').fill('2026-10-16T19:00')
   await residentSection.getByLabel('Waktu kembali (WIB)').fill('2026-10-16T22:00')
   await residentSection.getByLabel('Alasan').fill(rejectReason)
@@ -64,14 +74,17 @@ test('admin dapat menolak permohonan izin keluar', async ({ browser }) => {
 
   await adminPage.goto('/admin/rooms')
   const adminSection = adminPage.getByRole('region', { name: 'Izin keluar' })
+  await expect(adminSection).toBeVisible()
   const adminRow = adminSection.getByRole('row', { name: new RegExp(rejectReason) })
   await expect(adminRow).toBeVisible()
   await adminRow.getByRole('button', { name: 'Tolak' }).click()
   await expect(adminRow).toContainText('Ditolak')
+  await captureScreenshot(adminPage, 'panduan/admin/14-izin-keluar-penolakan.png')
 
   await residentPage.reload()
   const rejectedResidentRow = residentSection.getByRole('row', { name: new RegExp(rejectReason) })
   await expect(rejectedResidentRow).toContainText('Ditolak')
+  await captureScreenshot(residentPage, 'panduan/resident/15-izin-keluar-status-ditolak.png')
 
   await residentContext.close()
   await adminContext.close()
