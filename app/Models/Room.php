@@ -16,6 +16,15 @@ class Room extends Model
     protected $fillable = [
         'number',
         'floor',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    protected $attributes = [
+        'is_active' => true,
     ];
 
     public function slots(): HasMany
@@ -39,7 +48,7 @@ class Room extends Model
     }
 
     /**
-     * Urutan mengikuti RoomStatus::fromCounts: Kosong (0) < Assigned (1) < Terisi (2) < Penuh (3).
+     * Urutan mengikuti RoomStatus::fromCounts: Kosong (0) < Assigned (1) < Terisi (2) < Penuh (3) < Nonaktif (4).
      */
     public function scopeOrderByStatus(Builder $query, string $direction): void
     {
@@ -48,6 +57,7 @@ class Room extends Model
 
         $query->orderByRaw(
             "CASE
+                WHEN rooms.is_active = 0 THEN 4
                 WHEN assigned_count = 0 THEN 0
                 WHEN assigned_count > checked_in_count THEN 1
                 WHEN checked_in_count >= ? THEN 3
@@ -71,11 +81,13 @@ class Room extends Model
     protected function status(): Attribute
     {
         return Attribute::get(
-            fn () => RoomStatus::fromCounts(
-                (int) $this->assigned_count,
-                (int) $this->checked_in_count,
-                (int) config('asrama.room_capacity')
-            )
+            fn () => ! $this->is_active
+                ? RoomStatus::Inactive
+                : RoomStatus::fromCounts(
+                    (int) $this->assigned_count,
+                    (int) $this->checked_in_count,
+                    (int) config('asrama.room_capacity')
+                )
         );
     }
 }

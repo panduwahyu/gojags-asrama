@@ -14,7 +14,7 @@ class LaundryOrderTest extends TestCase
 
     public function test_resident_can_submit_laundry_order_and_set_count_bounds_are_enforced(): void
     {
-        $resident = User::factory()->resident()->create();
+        $resident = User::factory()->resident()->staying()->create();
 
         $this->actingAs($resident)
             ->postJson('/api/laundry-orders', [
@@ -124,38 +124,22 @@ class LaundryOrderTest extends TestCase
     {
         $admin = User::factory()->admin()->create();
         $user = User::factory()->resident()->create();
-        $order = LaundryOrder::factory()->for($user)->create([
-            'status' => LaundryStatus::Done,
-            'cost' => 15000,
-        ]);
+        $order = LaundryOrder::factory()->for($user)->create(['status' => LaundryStatus::Pending, 'cost' => 15000]);
 
         $this->actingAs($admin)
-            ->patchJson("/api/laundry-orders/{$order->id}", [
-                'status' => LaundryStatus::Pending->value,
-                'cost' => null,
-            ])
+            ->patchJson("/api/laundry-orders/{$order->id}", ['status' => LaundryStatus::Pending->value])
             ->assertOk();
-
-        $order->refresh();
-        $this->assertSame(LaundryStatus::Pending, $order->status);
-        $this->assertNull($order->cost);
-
-        $order->forceFill(['cost' => 15000, 'status' => LaundryStatus::Done])->save();
+        $this->assertSame('15000.00', $order->fresh()->cost);
 
         $this->actingAs($admin)
-            ->patchJson("/api/laundry-orders/{$order->id}", [
-                'status' => LaundryStatus::Pending->value,
-            ])
+            ->patchJson("/api/laundry-orders/{$order->id}", ['status' => LaundryStatus::Pending->value, 'cost' => null])
             ->assertOk();
-
-        $order->refresh();
-        $this->assertSame(LaundryStatus::Pending, $order->status);
-        $this->assertSame('15000.00', $order->cost);
+        $this->assertNull($order->fresh()->cost);
     }
 
     public function test_submitting_laundry_order_ignores_status_and_cost(): void
     {
-        $resident = User::factory()->resident()->create();
+        $resident = User::factory()->resident()->staying()->create();
 
         $this->actingAs($resident)
             ->postJson('/api/laundry-orders', [
@@ -195,5 +179,79 @@ class LaundryOrderTest extends TestCase
             ->assertOk();
 
         $this->assertSame('9999999999.99', $order->fresh()->cost);
+    }
+
+    public function test_completed_order_cannot_return_to_pending(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $order = LaundryOrder::factory()->done()->create();
+
+        $this->actingAs($admin)
+            ->patchJson("/api/laundry-orders/{$order->id}", ['status' => LaundryStatus::Pending->value])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['status' => 'Pesanan yang sudah selesai tidak dapat dikembalikan ke status Diajukan.']);
+
+        $this->assertSame(LaundryStatus::Done, $order->fresh()->status);
+    }
+
+    public function test_admin_cannot_set_cancelled_status_and_cancelled_order_is_immutable(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $pending = LaundryOrder::factory()->create();
+        $cancelled = LaundryOrder::factory()->create(['status' => LaundryStatus::Cancelled]);
+
+        $this->actingAs($admin)
+            ->patchJson("/api/laundry-orders/{$pending->id}", ['status' => LaundryStatus::Cancelled->value])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['status']);
+
+        $this->actingAs($admin)
+            ->patchJson("/api/laundry-orders/{$cancelled->id}", ['status' => LaundryStatus::Done->value, 'cost' => 10000])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['status' => 'Pesanan yang sudah dibatalkan tidak dapat diubah.']);
+    }
+
+    public function test_resident_can_cancel_own_pending_order(): void
+    {
+        $resident = User::factory()->resident()->create();
+        $order = LaundryOrder::factory()->for($resident)->create();
+
+        $this->actingAs($resident)
+            ->patchJson("/api/laundry-orders/{$order->id}/cancel")
+            ->assertOk()
+            ->assertJsonPath('message', 'Pesanan laundry dibatalkan.');
+
+        $this->assertSame(LaundryStatus::Cancelled, $order->fresh()->status);
+    }
+
+    public function test_only_pending_orders_can_be_cancelled_and_only_by_their_owner(): void
+    {
+        $resident = User::factory()->resident()->create();
+        $other = User::factory()->resident()->create();
+        $admin = User::factory()->admin()->create();
+        $done = LaundryOrder::factory()->for($resident)->done()->create();
+        $pending = LaundryOrder::factory()->for($resident)->create();
+
+        $this->patchJson("/api/laundry-orders/{$pending->id}/cancel")->assertUnauthorized();
+
+        $this->actingAs($resident)
+            ->patchJson("/api/laundry-orders/{$done->id}/cancel")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['status' => 'Hanya pesanan berstatus Diajukan yang dapat dibatalkan.']);
+
+        $this->actingAs($other)->patchJson("/api/laundry-orders/{$pending->id}/cancel")->assertNotFound();
+        $this->actingAs($admin)->patchJson("/api/laundry-orders/{$pending->id}/cancel")->assertForbidden();
+    }
+
+    public function test_resident_who_is_not_staying_cannot_submit_laundry(): void
+    {
+        $notStaying = User::factory()->resident()->create();
+
+        $this->actingAs($notStaying)
+            ->postJson('/api/laundry-orders', ['items' => 'Kaos', 'set_count' => 1])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['room' => 'Fitur ini hanya untuk penghuni yang sedang menginap (sudah check-in).']);
+
+        $this->assertSame(0, LaundryOrder::count());
     }
 }

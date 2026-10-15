@@ -88,7 +88,9 @@ class RoleAccessTest extends TestCase
         $admin = User::factory()->admin()->create();
         Room::factory()->count(3)->create();
         LaundryOrder::factory()->count(2)->create();
-        CateringMenu::factory()->count(4)->create();
+        foreach (range(1, 4) as $daysAgo) {
+            CateringMenu::factory()->create(['served_at' => now()->subDays($daysAgo)]);
+        }
 
         $this->actingAs($admin)
             ->getJson('/api/dashboard')

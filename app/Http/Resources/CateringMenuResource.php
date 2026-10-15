@@ -17,8 +17,6 @@ class CateringMenuResource extends JsonResource
             'meal_time_label' => $this->meal_time->label(),
             'provider' => $this->provider,
             'served_at' => $this->served_at,
-            'status' => $this->status->value,
-            'status_label' => $this->status->label(),
             'rating_average' => $this->rating_average !== null
                 ? round((float) $this->rating_average, 2)
                 : null,

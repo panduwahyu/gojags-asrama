@@ -20,6 +20,14 @@ class ReviewLeavePermitRequest extends FormRequest
                 'required',
                 Rule::in([PermitStatus::Approved->value, PermitStatus::Rejected->value]),
             ],
+            'rejection_reason' => ['required_if:status,rejected', 'nullable', 'string', 'max:1000'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'rejection_reason.required_if' => 'Alasan penolakan wajib diisi.',
         ];
     }
 }

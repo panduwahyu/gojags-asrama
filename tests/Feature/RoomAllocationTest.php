@@ -74,7 +74,7 @@ class RoomAllocationTest extends TestCase
         foreach ([Gender::Male, Gender::Female] as $gender) {
             foreach (['islam', 'kristen'] as $religion) {
                 User::factory()->resident()->profiled('64', $gender, $religion)->create();
-                User::factory()->resident()->profiled('64', $gender, ' '.strtoupper($religion).' ')->create();
+                User::factory()->resident()->profiled('64', $gender, $religion)->create();
             }
         }
 
@@ -94,7 +94,7 @@ class RoomAllocationTest extends TestCase
             $this->assertCount(1, $slots->map(fn (RoomSlot $slot) => $slot->user->gender)->unique());
             $this->assertCount(
                 1,
-                $slots->map(fn (RoomSlot $slot) => strtolower(trim($slot->user->religion)))->unique()
+                $slots->map(fn (RoomSlot $slot) => $slot->user->religion)->unique()
             );
         }
     }
@@ -137,20 +137,24 @@ class RoomAllocationTest extends TestCase
         $this->assertNull($incomplete->fresh()->slot);
     }
 
-    public function test_user_who_has_checked_out_is_not_reallocated(): void
+    public function test_user_who_has_checked_out_is_allocated_again(): void
     {
         $this->seed(RoomSeeder::class);
         $admin = User::factory()->admin()->create();
-        $departed = User::factory()->resident()->profiled()->create();
-        Stay::factory()->for($departed)->for(Room::first())->checkedOut()->create();
+        $returning = User::factory()->resident()->profiled()->create();
+        Stay::factory()->for($returning)->for(Room::first())->checkedOut()->create();
 
         $response = $this->actingAs($admin)
             ->postJson('/api/rooms/allocate')
             ->assertOk();
 
-        $response->assertJsonCount(0, 'allocated');
+        $response->assertJsonCount(1, 'allocated');
         $response->assertJsonCount(0, 'waiting');
-        $response->assertJsonCount(0, 'incomplete');
+        $this->assertNotNull($returning->fresh()->slot);
+
+        // Riwayat lama tetap ada; check-in berikutnya membuat riwayat baru.
+        $this->actingAs($returning)->postJson('/api/my-room/check-in')->assertOk();
+        $this->assertSame(2, $returning->stays()->count());
     }
 
     public function test_already_assigned_resident_is_not_moved_on_subsequent_allocation(): void
@@ -400,5 +404,87 @@ class RoomAllocationTest extends TestCase
             ->assertOk();
 
         $this->assertSame('502', $response->json('allocated.0.room'));
+    }
+
+    public function test_inactive_rooms_are_skipped(): void
+    {
+        $this->seed(RoomSeeder::class);
+        $admin = User::factory()->admin()->create();
+        Room::where('number', '501')->update(['is_active' => false]);
+        $resident = User::factory()->resident()->profiled()->create();
+
+        $response = $this->actingAs($admin)->postJson('/api/rooms/allocate')->assertOk();
+
+        $response->assertJsonPath('allocated.0.room', '502');
+        $this->assertDatabaseMissing('room_slots', ['user_id' => $resident->id, 'room_id' => Room::where('number', '501')->value('id')]);
+    }
+
+    public function test_religion_is_relaxed_before_leaving_the_resident_waiting(): void
+    {
+        $this->seed(RoomSeeder::class);
+        $admin = User::factory()->admin()->create();
+        Room::where('number', '!=', '501')->update(['is_active' => false]);
+        $muslim = User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create();
+        Room::where('number', '501')->firstOrFail()->slots()->where('position', 1)->update(['user_id' => $muslim->id]);
+        $christian = User::factory()->resident()->profiled('64', Gender::Male, 'kristen')->create();
+
+        $response = $this->actingAs($admin)->postJson('/api/rooms/allocate')->assertOk();
+
+        $response->assertJsonCount(1, 'allocated');
+        $response->assertJsonPath('allocated.0.room', '501');
+        $response->assertJsonPath('allocated.0.notes', ['Beda agama dengan teman sekamar.']);
+        $this->assertNotNull($christian->fresh()->slot);
+    }
+
+    public function test_gender_is_never_relaxed(): void
+    {
+        $this->seed(RoomSeeder::class);
+        $admin = User::factory()->admin()->create();
+        Room::where('number', '!=', '501')->update(['is_active' => false]);
+        $male = User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create();
+        Room::where('number', '501')->firstOrFail()->slots()->where('position', 1)->update(['user_id' => $male->id]);
+        $female = User::factory()->resident()->profiled('64', Gender::Female, 'islam')->create();
+
+        $response = $this->actingAs($admin)->postJson('/api/rooms/allocate')->assertOk();
+
+        $response->assertJsonCount(0, 'allocated');
+        $response->assertJsonPath('waiting.0.id', $female->id);
+    }
+
+    public function test_cohort_overflows_to_a_higher_floor_when_its_floor_and_below_are_full(): void
+    {
+        $this->seed(RoomSeeder::class);
+        $admin = User::factory()->admin()->create();
+        // Hanya kamar 301 (lantai 3) dan lantai 5 yang aktif; 301 sudah penuh oleh angkatan 64.
+        Room::whereIn('floor', [4])->update(['is_active' => false]);
+        Room::where('floor', 3)->where('number', '!=', '301')->update(['is_active' => false]);
+        $room301 = Room::where('number', '301')->firstOrFail();
+        foreach ([1, 2] as $position) {
+            $member = User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create();
+            $room301->slots()->where('position', $position)->update(['user_id' => $member->id]);
+        }
+        $newcomer = User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create();
+
+        $response = $this->actingAs($admin)->postJson('/api/rooms/allocate')->assertOk();
+
+        $response->assertJsonPath('allocated.0.floor', 5);
+        $response->assertJsonPath('allocated.0.notes', ['Penempatan di luar lantai rombongan angkatan 64.']);
+        $this->assertNotNull($newcomer->fresh()->slot);
+    }
+
+    public function test_floors_without_the_opposite_gender_are_preferred(): void
+    {
+        $this->seed(RoomSeeder::class);
+        $admin = User::factory()->admin()->create();
+        $woman = User::factory()->resident()->profiled('64', Gender::Female, 'islam')->create();
+        $man = User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create();
+
+        $this->actingAs($admin)->postJson('/api/rooms/allocate')->assertOk();
+
+        $this->assertNotSame(
+            $woman->fresh()->slot->room->floor,
+            $man->fresh()->slot->room->floor,
+            'Laki-laki dan perempuan satu angkatan diutamakan berbeda lantai.'
+        );
     }
 }

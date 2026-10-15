@@ -16,7 +16,8 @@ class UpdateLaundryOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', Rule::enum(LaundryStatus::class)],
+            // Pembatalan dilakukan penghuni lewat endpoint tersendiri.
+            'status' => ['required', Rule::in([LaundryStatus::Pending->value, LaundryStatus::Done->value])],
             'cost' => [
                 Rule::requiredIf($this->input('status') === LaundryStatus::Done->value),
                 'nullable',

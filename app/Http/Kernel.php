@@ -4,6 +4,7 @@ namespace App\Http;
 
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\RequireRole;
+use App\Http\Middleware\RequireStaying;
 use App\Http\Middleware\TrimStrings;
 use App\Http\Middleware\TrustProxies;
 use Illuminate\Auth\Middleware\Authorize;
@@ -51,6 +52,7 @@ class Kernel extends HttpKernel
 
     protected $middlewareAliases = [
         'role' => RequireRole::class,
+        'staying' => RequireStaying::class,
         'auth' => Authenticate::class,
         'cache.headers' => SetCacheHeaders::class,
         'throttle' => ThrottleRequests::class,

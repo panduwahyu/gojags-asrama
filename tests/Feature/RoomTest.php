@@ -66,6 +66,7 @@ class RoomTest extends TestCase
             'assigned' => 2,
             'occupied' => 1,
             'full' => 1,
+            'inactive' => 0,
         ]);
 
         $byNumber = collect($response->json('data'))->keyBy('number');
@@ -173,5 +174,74 @@ class RoomTest extends TestCase
             ['501', '503', '502'],
             array_column($byAssigned->json('data'), 'number')
         );
+    }
+
+    public function test_admin_can_deactivate_and_reactivate_an_empty_room(): void
+    {
+        $this->seed(RoomSeeder::class);
+        $admin = User::factory()->admin()->create();
+        $room = Room::where('number', '501')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->patchJson("/api/rooms/{$room->id}", ['is_active' => false])
+            ->assertOk()
+            ->assertJsonPath('message', 'Kamar dinonaktifkan.');
+
+        $response = $this->actingAs($admin)->getJson('/api/rooms?q=501')->assertOk();
+        $response->assertJsonPath('data.0.is_active', false);
+        $response->assertJsonPath('data.0.status', RoomStatus::Inactive->value);
+        $response->assertJsonPath('data.0.status_label', 'Nonaktif');
+        $response->assertJsonPath('monitoring.inactive', 1);
+        $response->assertJsonPath('monitoring.empty', 77);
+
+        $this->actingAs($admin)
+            ->patchJson("/api/rooms/{$room->id}", ['is_active' => true])
+            ->assertOk()
+            ->assertJsonPath('message', 'Kamar diaktifkan.');
+        $this->assertTrue($room->fresh()->is_active);
+    }
+
+    public function test_room_with_residents_cannot_be_deactivated(): void
+    {
+        $this->seed(RoomSeeder::class);
+        $admin = User::factory()->admin()->create();
+        $resident = User::factory()->resident()->create();
+        $room = Room::where('number', '501')->firstOrFail();
+        $room->slots()->where('position', 1)->update(['user_id' => $resident->id]);
+
+        $this->actingAs($admin)
+            ->patchJson("/api/rooms/{$room->id}", ['is_active' => false])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['is_active' => 'Kamar masih berpenghuni. Cabut alokasi atau pindahkan penghuni terlebih dahulu.']);
+
+        $this->assertTrue($room->fresh()->is_active);
+    }
+
+    public function test_only_admins_can_change_room_activity_and_the_flag_is_required(): void
+    {
+        $this->seed(RoomSeeder::class);
+        $room = Room::firstOrFail();
+
+        $this->patchJson("/api/rooms/{$room->id}", ['is_active' => false])->assertUnauthorized();
+        $this->actingAs(User::factory()->resident()->create())
+            ->patchJson("/api/rooms/{$room->id}", ['is_active' => false])
+            ->assertForbidden();
+        $this->actingAs(User::factory()->admin()->create())
+            ->patchJson("/api/rooms/{$room->id}", [])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['is_active']);
+    }
+
+    public function test_inactive_rooms_sort_after_the_other_statuses(): void
+    {
+        $this->seed(RoomSeeder::class);
+        $admin = User::factory()->admin()->create();
+        Room::where('number', '301')->update(['is_active' => false]);
+
+        $ascending = $this->actingAs($admin)->getJson('/api/rooms?per_page=100&sort=status&direction=asc')->json('data');
+        $descending = $this->actingAs($admin)->getJson('/api/rooms?per_page=100&sort=status&direction=desc')->json('data');
+
+        $this->assertSame('301', end($ascending)['number']);
+        $this->assertSame('301', $descending[0]['number']);
     }
 }

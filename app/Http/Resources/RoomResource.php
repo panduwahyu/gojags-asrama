@@ -25,6 +25,7 @@ class RoomResource extends JsonResource
             'id' => $this->id,
             'number' => $this->number,
             'floor' => $this->floor,
+            'is_active' => $this->is_active,
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
             'assigned_count' => (int) $this->assigned_count,

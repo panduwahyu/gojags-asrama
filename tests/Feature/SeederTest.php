@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Religion;
 use App\Enums\Role;
 use App\Models\Room;
 use App\Models\RoomSlot;
@@ -32,7 +33,7 @@ class SeederTest extends TestCase
         $this->assertSame(156, RoomSlot::count());
         $this->assertSame(1, User::where('role', Role::Admin)->count());
         $this->assertSame(11, User::where('role', Role::Resident)->count());
-        $this->assertSame('islam', $user1->fresh()->religion);
+        $this->assertSame(Religion::Islam, $user1->fresh()->religion);
     }
 
     public function test_demo_accounts_are_not_seeded_in_production(): void

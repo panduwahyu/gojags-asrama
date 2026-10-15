@@ -12,10 +12,14 @@ class ResidentResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'email' => $this->email,
             'cohort' => $this->cohort,
             'gender' => $this->gender?->value,
-            'religion' => $this->religion,
+            'religion' => $this->religion?->value,
             'room_id' => $this->slot?->room_id,
+            'room_number' => $this->slot?->room?->number,
+            'checked_in_at' => $this->slot?->checked_in_at,
+            'can_cancel_check_out' => $this->slot === null && $this->latestStay?->checked_out_at !== null,
         ];
     }
 }

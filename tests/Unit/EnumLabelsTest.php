@@ -2,12 +2,12 @@
 
 namespace Tests\Unit;
 
-use App\Enums\CateringStatus;
 use App\Enums\ComplaintStatus;
 use App\Enums\Gender;
 use App\Enums\LaundryStatus;
 use App\Enums\MealTime;
 use App\Enums\PermitStatus;
+use App\Enums\Religion;
 use App\Enums\Role;
 use App\Enums\RoomStatus;
 use PHPUnit\Framework\TestCase;
@@ -55,11 +55,13 @@ class EnumLabelsTest extends TestCase
         $this->assertSame('assigned', RoomStatus::Assigned->value);
         $this->assertSame('occupied', RoomStatus::Occupied->value);
         $this->assertSame('full', RoomStatus::Full->value);
+        $this->assertSame('inactive', RoomStatus::Inactive->value);
 
         $this->assertSame('Kosong', RoomStatus::Empty->label());
         $this->assertSame('Assigned', RoomStatus::Assigned->label());
         $this->assertSame('Terisi', RoomStatus::Occupied->label());
         $this->assertSame('Penuh', RoomStatus::Full->label());
+        $this->assertSame('Nonaktif', RoomStatus::Inactive->label());
     }
 
     public function test_permit_status_enum_values_and_labels(): void
@@ -67,18 +69,22 @@ class EnumLabelsTest extends TestCase
         $this->assertSame('pending', PermitStatus::Pending->value);
         $this->assertSame('approved', PermitStatus::Approved->value);
         $this->assertSame('rejected', PermitStatus::Rejected->value);
+        $this->assertSame('cancelled', PermitStatus::Cancelled->value);
 
         $this->assertSame('Diajukan', PermitStatus::Pending->label());
         $this->assertSame('Disetujui', PermitStatus::Approved->label());
         $this->assertSame('Ditolak', PermitStatus::Rejected->label());
+        $this->assertSame('Dibatalkan', PermitStatus::Cancelled->label());
     }
 
     public function test_complaint_status_enum_values_and_labels(): void
     {
         $this->assertSame('pending', ComplaintStatus::Pending->value);
+        $this->assertSame('in_progress', ComplaintStatus::InProgress->value);
         $this->assertSame('resolved', ComplaintStatus::Resolved->value);
 
         $this->assertSame('Diajukan', ComplaintStatus::Pending->label());
+        $this->assertSame('Sedang ditangani', ComplaintStatus::InProgress->label());
         $this->assertSame('Resolved', ComplaintStatus::Resolved->label());
     }
 
@@ -86,19 +92,27 @@ class EnumLabelsTest extends TestCase
     {
         $this->assertSame('pending', LaundryStatus::Pending->value);
         $this->assertSame('done', LaundryStatus::Done->value);
+        $this->assertSame('cancelled', LaundryStatus::Cancelled->value);
 
         $this->assertSame('Diajukan', LaundryStatus::Pending->label());
         $this->assertSame('Selesai', LaundryStatus::Done->label());
+        $this->assertSame('Dibatalkan', LaundryStatus::Cancelled->label());
     }
 
-    public function test_catering_status_enum_values_and_labels(): void
+    public function test_religion_enum_has_the_six_official_religions(): void
     {
-        $this->assertSame('scheduled', CateringStatus::Scheduled->value);
-        $this->assertSame('preparing', CateringStatus::Preparing->value);
-        $this->assertSame('done', CateringStatus::Done->value);
+        $this->assertSame(
+            ['islam', 'kristen', 'katolik', 'hindu', 'buddha', 'konghucu'],
+            array_column(Religion::cases(), 'value')
+        );
+        $this->assertSame('Islam', Religion::Islam->label());
+        $this->assertSame('Konghucu', Religion::Konghucu->label());
+    }
 
-        $this->assertSame('Terjadwal', CateringStatus::Scheduled->label());
-        $this->assertSame('Disiapkan', CateringStatus::Preparing->label());
-        $this->assertSame('Selesai', CateringStatus::Done->label());
+    public function test_status_enums_list_cases_in_workflow_order(): void
+    {
+        $this->assertSame(['pending', 'in_progress', 'resolved'], array_column(ComplaintStatus::cases(), 'value'));
+        $this->assertSame(['pending', 'done', 'cancelled'], array_column(LaundryStatus::cases(), 'value'));
+        $this->assertSame(['pending', 'approved', 'rejected', 'cancelled'], array_column(PermitStatus::cases(), 'value'));
     }
 }

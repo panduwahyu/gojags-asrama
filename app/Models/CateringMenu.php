@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\Enums\CateringStatus;
 use App\Enums\MealTime;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 
 class CateringMenu extends Model
 {
@@ -24,13 +24,24 @@ class CateringMenu extends Model
 
     protected $casts = [
         'served_at' => 'datetime',
-        'status' => CateringStatus::class,
+        'served_on' => 'date:Y-m-d',
         'meal_time' => MealTime::class,
     ];
 
-    protected $attributes = [
-        'status' => CateringStatus::Scheduled,
-    ];
+    protected static function booted(): void
+    {
+        // served_on = tanggal hidang dalam WIB; bersama meal_time menjadi kunci unik (cegah menu ganda).
+        static::saving(function (self $menu) {
+            $menu->served_on = self::servedOnFor($menu->served_at);
+        });
+    }
+
+    public static function servedOnFor(\DateTimeInterface|string $servedAt): string
+    {
+        return Date::parse($servedAt)
+            ->setTimezone((string) config('asrama.display_timezone'))
+            ->toDateString();
+    }
 
     public function ratings(): HasMany
     {

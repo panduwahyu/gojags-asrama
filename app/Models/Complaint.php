@@ -40,4 +40,9 @@ class Complaint extends Model
     {
         return $this->status === ComplaintStatus::Pending;
     }
+
+    public function isResolved(): bool
+    {
+        return $this->status === ComplaintStatus::Resolved;
+    }
 }

@@ -8,6 +8,7 @@ enum RoomStatus: string
     case Assigned = 'assigned';
     case Occupied = 'occupied';
     case Full = 'full';
+    case Inactive = 'inactive';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum RoomStatus: string
             self::Assigned => 'Assigned',
             self::Occupied => 'Terisi',
             self::Full => 'Penuh',
+            self::Inactive => 'Nonaktif',
         };
     }
 

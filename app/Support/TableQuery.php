@@ -7,6 +7,7 @@ use Closure;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 
 final class TableQuery
@@ -81,6 +82,21 @@ final class TableQuery
         return $this->query->paginate(
             (int) ($input['per_page'] ?? config('asrama.per_page_options')[0])
         );
+    }
+
+    /** Semua baris sesuai filter dan urutan (tanpa paginasi), dibatasi untuk ekspor. */
+    public function export(Request $request, int $limit = 5000): Collection
+    {
+        $input = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'sort' => ['sometimes', Rule::in(array_keys($this->sortable))],
+            'direction' => ['sometimes', Rule::in(['asc', 'desc'])],
+        ]);
+
+        $this->applySearch($input['q'] ?? '');
+        $this->applySort($input['sort'] ?? 'id', $input['direction'] ?? 'desc');
+
+        return $this->query->limit($limit)->get();
     }
 
     private function applySearch(string $term): void

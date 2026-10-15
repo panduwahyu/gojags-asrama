@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\UpdateResidentProfile;
 use App\Enums\Gender;
+use App\Enums\Religion;
 use App\Models\Room;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -65,26 +66,83 @@ class ResidentProfileTest extends TestCase
             ->assertSee('Angkatan dan agama wajib diisi.');
     }
 
-    public function test_resident_who_already_has_a_slot_cannot_have_profile_updated(): void
+    public function test_profile_of_a_resident_with_a_room_can_still_be_corrected(): void
     {
         $admin = User::factory()->admin()->create();
         $resident = User::factory()->resident()->profiled()->create();
         $room = Room::factory()->create();
-        $room->slots()->create([
-            'position' => 1,
-            'user_id' => $resident->id,
-        ]);
+        $room->slots()->create(['position' => 1, 'user_id' => $resident->id]);
+
+        $this->actingAs($admin)
+            ->patchJson("/api/residents/{$resident->id}", [
+                'cohort' => '65',
+                'gender' => Gender::Male->value,
+                'religion' => 'kristen',
+            ])
+            ->assertOk()
+            ->assertJsonPath('message', 'Profil alokasi berhasil disimpan.')
+            ->assertJsonPath('warnings', []);
+
+        $this->assertSame('65', $resident->fresh()->cohort);
+        $this->assertSame(Religion::Kristen, $resident->fresh()->religion);
+        $this->assertDatabaseHas('room_slots', ['room_id' => $room->id, 'user_id' => $resident->id]);
+    }
+
+    public function test_correcting_a_profile_warns_when_it_no_longer_matches_the_roommate(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $resident = User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create();
+        $roommate = User::factory()->resident()->profiled('64', Gender::Male, 'islam')->create();
+        $room = Room::factory()->create();
+        $room->slots()->create(['position' => 1, 'user_id' => $resident->id]);
+        $room->slots()->create(['position' => 2, 'user_id' => $roommate->id]);
 
         $this->actingAs($admin)
             ->patchJson("/api/residents/{$resident->id}", [
                 'cohort' => '65',
                 'gender' => Gender::Female->value,
-                'religion' => 'kristen',
+                'religion' => 'hindu',
             ])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors([
-                'profile' => 'Profil penghuni yang sudah dialokasikan tidak dapat diubah.',
+            ->assertOk()
+            ->assertJsonPath('warnings', [
+                'Jenis kelamin berbeda dengan teman sekamar.',
+                'Beda agama dengan teman sekamar.',
+                'Beda angkatan dengan teman sekamar.',
             ]);
+
+        // Kamar tidak dibatalkan dan data tetap tersimpan.
+        $this->assertDatabaseHas('room_slots', ['room_id' => $room->id, 'user_id' => $resident->id]);
+        $this->assertSame(Gender::Female, $resident->fresh()->gender);
+    }
+
+    public function test_religion_must_be_one_of_the_six_official_religions(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $resident = User::factory()->resident()->create();
+
+        $this->actingAs($admin)
+            ->patchJson("/api/residents/{$resident->id}", ['cohort' => '64', 'gender' => 'male', 'religion' => 'agnostik'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['religion']);
+
+        foreach (['Islam', 'KRISTEN', ' katolik ', 'hindu', 'Buddha', 'konghucu'] as $religion) {
+            $this->actingAs($admin)
+                ->patchJson("/api/residents/{$resident->id}", ['cohort' => '64', 'gender' => 'male', 'religion' => $religion])
+                ->assertOk();
+        }
+    }
+
+    public function test_cohort_may_only_contain_letters_digits_and_spaces(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $resident = User::factory()->resident()->create();
+
+        foreach (['64!', 'A/B', '64-65'] as $invalid) {
+            $this->actingAs($admin)
+                ->patchJson("/api/residents/{$resident->id}", ['cohort' => $invalid, 'gender' => 'male', 'religion' => 'islam'])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors(['cohort' => 'Angkatan hanya boleh berisi huruf, angka, dan spasi.']);
+        }
     }
 
     public function test_updating_admin_user_returns_404(): void
@@ -151,7 +209,7 @@ class ResidentProfileTest extends TestCase
 
         $resident->refresh();
         $this->assertSame('64 a', $resident->cohort);
-        $this->assertSame('islam', $resident->religion);
+        $this->assertSame(Religion::Islam, $resident->religion);
     }
 
     public function test_update_resident_profile_action_throws_validation_exception_on_whitespace_only_cohort(): void
@@ -183,7 +241,7 @@ class ResidentProfileTest extends TestCase
         ]);
     }
 
-    public function test_cohort_and_religion_length_limits_are_enforced(): void
+    public function test_cohort_length_limit_is_enforced(): void
     {
         $admin = User::factory()->admin()->create();
         $resident = User::factory()->resident()->create();
@@ -195,16 +253,7 @@ class ResidentProfileTest extends TestCase
             ->assertJsonValidationErrors(['cohort']);
 
         $this->actingAs($admin)
-            ->patchJson("/api/residents/{$resident->id}", [...$valid, 'religion' => str_repeat('a', 51)])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['religion']);
-
-        $this->actingAs($admin)
-            ->patchJson("/api/residents/{$resident->id}", [
-                ...$valid,
-                'cohort' => str_repeat('a', 100),
-                'religion' => str_repeat('b', 50),
-            ])
+            ->patchJson("/api/residents/{$resident->id}", [...$valid, 'cohort' => str_repeat('a', 100)])
             ->assertOk();
     }
 }

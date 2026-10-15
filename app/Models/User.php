@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Gender;
+use App\Enums\Religion;
 use App\Enums\Role;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -35,6 +36,7 @@ class User extends Authenticatable
         'password' => 'hashed',
         'role' => Role::class,
         'gender' => Gender::class,
+        'religion' => Religion::class,
     ];
 
     protected $attributes = [
@@ -49,6 +51,11 @@ class User extends Authenticatable
     public function stays(): HasMany
     {
         return $this->hasMany(Stay::class);
+    }
+
+    public function latestStay(): HasOne
+    {
+        return $this->hasOne(Stay::class)->latestOfMany();
     }
 
     public function laundryOrders(): HasMany
@@ -76,7 +83,13 @@ class User extends Authenticatable
         $query->where('role', Role::Resident);
     }
 
-    /** Angkatan dan agama dibandingkan tanpa beda huruf besar/kecil dan spasi berlebih. */
+    /** Penghuni aktif menginap: punya kamar dan sudah check-in (belum check-out). */
+    public function isStaying(): bool
+    {
+        return $this->slot()->whereNotNull('checked_in_at')->exists();
+    }
+
+    /** Angkatan dibandingkan tanpa beda huruf besar/kecil dan spasi berlebih. */
     public static function normalizeProfileText(?string $value): string
     {
         return mb_strtolower(trim((string) preg_replace('/\s+/u', ' ', $value ?? '')));

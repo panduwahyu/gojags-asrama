@@ -16,6 +16,7 @@ class ComplaintResource extends JsonResource
             'body' => $this->body,
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
+            'response' => $this->response,
             'created_at' => $this->created_at,
             'resolved_at' => $this->resolved_at,
         ];

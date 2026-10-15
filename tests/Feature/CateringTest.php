@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Enums\CateringStatus;
 use App\Models\CateringMenu;
 use App\Models\CateringRating;
 use App\Models\User;
@@ -14,38 +13,10 @@ class CateringTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_can_create_and_update_catering_menu_status(): void
-    {
-        $admin = User::factory()->admin()->create();
-
-        $this->actingAs($admin)
-            ->postJson('/api/catering-menus', [
-                'menu_number' => 3,
-                'dish_name' => 'Nasi Kuning Komplit',
-                'meal_time' => 'breakfast',
-                'provider' => 'Dapur Berkah',
-                'served_at' => '2026-10-14T05:00:00.000Z',
-            ])
-            ->assertCreated()
-            ->assertJsonPath('message', 'Menu catering berhasil ditambahkan.');
-
-        $menu = CateringMenu::firstOrFail();
-        $this->assertSame(CateringStatus::Scheduled, $menu->status);
-
-        $this->actingAs($admin)
-            ->patchJson("/api/catering-menus/{$menu->id}", [
-                'status' => CateringStatus::Preparing->value,
-            ])
-            ->assertOk()
-            ->assertJsonPath('message', 'Status berhasil diperbarui.');
-
-        $this->assertSame(CateringStatus::Preparing, $menu->fresh()->status);
-    }
-
     public function test_resident_rating_bounds_overwrite_and_aggregates(): void
     {
-        $firstResident = User::factory()->resident()->create();
-        $secondResident = User::factory()->resident()->create();
+        $firstResident = User::factory()->resident()->staying()->create();
+        $secondResident = User::factory()->resident()->staying()->create();
         $unratedResident = User::factory()->resident()->create();
         $menu = CateringMenu::factory()->create();
 
@@ -197,26 +168,6 @@ class CateringTest extends TestCase
         $this->assertSame('Kantin Lama', $menu->provider);
     }
 
-    public function test_admin_can_patch_only_status_leaving_other_attributes_intact(): void
-    {
-        $admin = User::factory()->admin()->create();
-        $menu = CateringMenu::factory()->create([
-            'dish_name' => 'Soto Ayam',
-            'status' => CateringStatus::Scheduled,
-        ]);
-
-        $this->actingAs($admin)
-            ->patchJson("/api/catering-menus/{$menu->id}", [
-                'status' => CateringStatus::Preparing->value,
-            ])
-            ->assertOk()
-            ->assertJsonPath('message', 'Status berhasil diperbarui.');
-
-        $menu->refresh();
-        $this->assertSame(CateringStatus::Preparing, $menu->status);
-        $this->assertSame('Soto Ayam', $menu->dish_name);
-    }
-
     public function test_admin_can_delete_catering_menu_and_associated_ratings_are_removed(): void
     {
         $admin = User::factory()->admin()->create();
@@ -305,7 +256,7 @@ class CateringTest extends TestCase
 
     public function test_rating_before_served_at_is_rejected(): void
     {
-        $resident = User::factory()->resident()->create();
+        $resident = User::factory()->resident()->staying()->create();
         $this->travelTo(Carbon::parse('2026-10-15T05:00:00.000Z'));
         $menu = CateringMenu::factory()->create([
             'served_at' => Carbon::parse('2026-10-16T05:00:00.000Z'),
@@ -321,7 +272,7 @@ class CateringTest extends TestCase
 
     public function test_rating_window_lifecycle_and_boundaries(): void
     {
-        $resident = User::factory()->resident()->create();
+        $resident = User::factory()->resident()->staying()->create();
         $menu = CateringMenu::factory()->create([
             'served_at' => Carbon::parse('2026-10-15T05:00:00.000Z'),
         ]);
@@ -350,7 +301,7 @@ class CateringTest extends TestCase
 
     public function test_late_night_menu_rating_closes_at_end_of_wib_day_not_utc_day(): void
     {
-        $resident = User::factory()->resident()->create();
+        $resident = User::factory()->resident()->staying()->create();
         $menu = CateringMenu::factory()->create([
             'served_at' => Carbon::parse('2026-10-15T16:30:00.000Z'),
         ]);
@@ -408,5 +359,73 @@ class CateringTest extends TestCase
 
         $this->assertSame([$high->id, $low->id], array_column($byAverage->json('data'), 'id'));
         $this->assertSame([$low->id, $high->id], array_column($byCount->json('data'), 'id'));
+    }
+
+    public function test_menu_cannot_be_created_twice_for_the_same_wib_day_and_meal_time(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $payload = [
+            'menu_number' => 1,
+            'dish_name' => 'Ayam Geprek',
+            'meal_time' => 'lunch',
+            'provider' => 'Dapur Sehat',
+            // 17.30 UTC = 00.30 WIB hari berikutnya -> served_on 2026-10-16
+            'served_at' => '2026-10-15T17:30:00.000Z',
+        ];
+
+        $this->actingAs($admin)->postJson('/api/catering-menus', $payload)->assertCreated();
+        $this->assertSame('2026-10-16', CateringMenu::firstOrFail()->served_on->toDateString());
+
+        $this->actingAs($admin)
+            ->postJson('/api/catering-menus', [...$payload, 'dish_name' => 'Soto', 'served_at' => '2026-10-16T05:00:00.000Z'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['meal_time' => 'Menu untuk waktu makan ini pada tanggal yang sama sudah ada.']);
+
+        $this->actingAs($admin)
+            ->postJson('/api/catering-menus', [...$payload, 'meal_time' => 'dinner'])
+            ->assertCreated();
+        $this->actingAs($admin)
+            ->postJson('/api/catering-menus', [...$payload, 'served_at' => '2026-10-17T05:00:00.000Z'])
+            ->assertCreated();
+
+        $this->assertSame(3, CateringMenu::count());
+    }
+
+    public function test_updating_a_menu_cannot_collide_with_another_menu_but_may_keep_its_own_slot(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $lunch = CateringMenu::factory()->create(['meal_time' => 'lunch', 'served_at' => '2026-10-15T05:00:00.000Z']);
+        $dinner = CateringMenu::factory()->create(['meal_time' => 'dinner', 'served_at' => '2026-10-15T05:00:00.000Z']);
+
+        $this->actingAs($admin)
+            ->patchJson("/api/catering-menus/{$lunch->id}", ['dish_name' => 'Nasi Rawon', 'meal_time' => 'lunch'])
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->patchJson("/api/catering-menus/{$dinner->id}", ['meal_time' => 'lunch'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['meal_time']);
+    }
+
+    public function test_menu_status_is_no_longer_part_of_the_api(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $menu = CateringMenu::factory()->create();
+
+        $this->actingAs($admin)->getJson('/api/catering-menus')->assertOk()->assertJsonMissingPath('data.0.status');
+        $this->assertArrayNotHasKey('status', $menu->fresh()->getAttributes());
+    }
+
+    public function test_resident_who_is_not_staying_cannot_rate(): void
+    {
+        $notStaying = User::factory()->resident()->create();
+        $menu = CateringMenu::factory()->create();
+
+        $this->actingAs($notStaying)
+            ->putJson("/api/catering-menus/{$menu->id}/rating", ['rating' => 5])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['room' => 'Fitur ini hanya untuk penghuni yang sedang menginap (sudah check-in).']);
+
+        $this->assertSame(0, CateringRating::count());
     }
 }

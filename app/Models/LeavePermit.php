@@ -18,6 +18,8 @@ class LeavePermit extends Model
         'reason',
     ];
 
+    // rejection_reason diisi lewat peninjauan admin, bukan oleh pengaju.
+
     protected $casts = [
         'leaves_at' => 'datetime',
         'returns_at' => 'datetime',

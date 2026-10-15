@@ -17,6 +17,7 @@ class LeavePermitResource extends JsonResource
             'reason' => $this->reason,
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
+            'rejection_reason' => $this->rejection_reason,
         ];
     }
 }
