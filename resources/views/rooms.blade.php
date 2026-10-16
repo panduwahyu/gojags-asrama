@@ -2,21 +2,32 @@
 <section class="card entry-form">
     <h2>Alokasi kamar otomatis</h2>
     <p>Angkatan yang sama diprioritaskan pada satu lantai, mulai lantai 5 lalu turun ke 4 dan 3. Teman sekamar harus memiliki gender dan agama yang sama. Penghuni yang sudah dialokasikan tetap di kamarnya.</p>
-    <p>Simpan profil user sebelum alokasi. User dengan profil belum lengkap atau tanpa kamar yang sesuai akan dilaporkan dan belum ditempatkan.</p>
-    <form method="POST" action="{{ url('/kamar/allocate') }}">@csrf<button class="btn">Alokasikan kamar otomatis</button></form>
-</section>
-<details class="card entry-form">
-    <summary>Profil user untuk alokasi ({{ count($allocation_users) }})</summary>
-    @forelse($allocation_users as $resident)
-    <form method="POST" action="{{ url('/allocation-users/'.$resident->id) }}">@csrf @method('PATCH')
-        <h3>{{ $resident->name }} {{ $resident->kamar_id ? '· Sudah dialokasikan' : '' }}</h3>
-        <fieldset @disabled($resident->kamar_id)><div class="form-grid">
-            <label>Angkatan<input name="angkatan" value="{{ $resident->angkatan }}" required maxlength="100"></label>
-            <label>Gender<select name="gender" required><option value="">Pilih gender</option>@foreach(['Laki-laki', 'Perempuan'] as $gender)<option @selected($resident->gender === $gender)>{{ $gender }}</option>@endforeach</select></label>
-            <label>Agama<input name="agama" value="{{ $resident->agama }}" required maxlength="50"></label>
-        </div>@unless($resident->kamar_id)<button class="btn">Simpan profil {{ $resident->name }}</button>@endunless</fieldset>
+    <p>Sinkronkan data dari api-gojags, lalu pilih batch peserta. Hanya peserta batch terpilih yang akan dialokasikan.</p>
+    <form method="POST" action="{{ url('/kamar/sync') }}">@csrf<button class="btn">Sinkronisasi data peserta</button></form>
+    <form method="POST" action="{{ url('/kamar/allocate') }}">@csrf
+        <label>Batch peserta diklat<select name="batch_id" required @disabled($batches->isEmpty())><option value="">Pilih batch peserta</option>@foreach($batches as $batch)<option value="{{ $batch->id }}" @selected((string) old('batch_id') === (string) $batch->id) @disabled(!$batch->participants_count)>{{ $batch->name }} ({{ $batch->participants_count }} peserta)</option>@endforeach</select></label>
+        @if($batches->isEmpty())<p>Belum ada batch. Klik Sinkronisasi data peserta terlebih dahulu.</p>@endif
+        <button class="btn" @disabled($batches->isEmpty())>Alokasikan kamar otomatis</button>
     </form>
-    @empty<p>Belum ada akun user.</p>@endforelse
+</section>
+<section class="card entry-form">
+    <h2>QR check-in / check-out angkatan</h2>
+    <p>QR berlaku 15 menit. QR baru menggantikan QR sebelumnya untuk batch dan aksi yang sama.</p>
+    <form method="POST" action="{{ url('/kamar/qr') }}">@csrf
+        <label>Batch QR<select name="batch_id" required><option value="">Pilih batch peserta</option>@foreach($batches as $batch)<option value="{{ $batch->id }}" @disabled(!$batch->participants_count)>{{ $batch->name }}</option>@endforeach</select></label>
+        <label>Jenis QR<select name="action" required><option value="check-in">Check-in</option><option value="check-out">Check-out</option></select></label>
+        <button class="btn" @disabled($batches->isEmpty())>Generate QR angkatan</button>
+    </form>
+</section>
+<details class="card entry-form"><summary>Data peserta hasil sinkronisasi</summary>
+    @foreach($batches as $batch)
+        <h3>{{ $batch->name }} ({{ $batch->participants_count }} peserta)</h3>
+        <div class="table-wrap"><table><thead><tr><th>Nama</th><th>Angkatan</th><th>Gender</th><th>Agama</th><th>Status alokasi</th></tr></thead><tbody>
+        @foreach($allocation_users->where('batch_id', $batch->id) as $resident)
+            <tr><td>{{ $resident->name }}</td><td>{{ $resident->angkatan }}</td><td>{{ $resident->gender }}</td><td>{{ $resident->agama }}</td><td>{{ $resident->kamar_id ? 'Sudah dialokasikan' : 'Belum dialokasikan' }}</td></tr>
+        @endforeach
+        </tbody></table></div>
+    @endforeach
 </details>
 <section class="card data-card" data-async-table data-room-live>
     <form class="search-form" method="GET"><label class="search"><input name="q" value="{{ request('q') }}" placeholder="Cari nomor kamar atau lantai" aria-label="Cari kamar"></label><button class="btn">Cari</button>@if(request('q'))<a href="{{ request()->fullUrlWithQuery(['q' => null, 'page' => 1, 'per_page' => $records->perPage()]) }}">Reset</a>@endif</form>
@@ -26,5 +37,3 @@
     </tbody></table></div>
     @include('partials.table-pagination')
 </section>
-@include('partials.leave-permissions')
-@include('partials.complaints')

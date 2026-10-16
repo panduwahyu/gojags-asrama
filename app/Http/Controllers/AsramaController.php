@@ -64,6 +64,7 @@ class AsramaController extends Controller
         if ($sort !== 'id') $query->orderBy('id', $direction);
         $data = ['page' => $page, 'records' => $query->paginate($request->integer('per_page', 10))->withQueryString(), 'counts' => $counts, 'statuses' => self::STATUSES[$page] ?? []];
         if ($page === 'kamar') {
+            $data['batches'] = \App\Services\TrainingSync::batches();
             $data['monitoring'] = RoomStatus::monitoring();
             if (!$request->expectsJson()) $data['leave_permissions'] = LeavePermissionController::query($request)->orderByDesc('izin_keluar.id')->get();
             if (!$request->expectsJson()) $data['complaints'] = ComplaintController::query($request)->orderByDesc('keluhan_asrama.id')->get();
@@ -71,8 +72,9 @@ class AsramaController extends Controller
                 ->whereIn('kamar_id', $data['records']->pluck('id'))->select('kamar_id', 'users.id', 'users.name', 'kamar_slots.checked_in_at')->orderBy('users.name')->orderBy('users.id')->get()->groupBy('kamar_id');
             foreach ($data['records'] as $room) $room->penghuni = $people->get($room->id, collect())->values();
             $data['allocation_users'] = DB::table('users')->leftJoin('kamar_slots', 'users.id', '=', 'kamar_slots.user_id')
+                ->leftJoin('training_participants', function ($join) { $join->on('training_participants.user_id', '=', 'users.id')->where('training_participants.active', true); })
                 ->where('role', 'user')->orderBy('users.id')
-                ->get(['users.id', 'users.name', 'angkatan', 'gender', 'agama', 'kamar_slots.kamar_id']);
+                ->get(['users.id', 'users.name', 'angkatan', 'gender', 'agama', 'kamar_slots.kamar_id', 'training_participants.batch_id']);
         }
         return $request->expectsJson() ? response()->json($data) : view('asrama', $data);
     }

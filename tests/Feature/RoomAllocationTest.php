@@ -99,7 +99,9 @@ class RoomAllocationTest extends TestCase
         $this->patchJson('/api/asrama/allocation-users/'.$admin->id, $profile)->assertNotFound();
         $this->patchJson('/api/asrama/allocation-users/'.$user->id, $profile)->assertOk();
         $this->assertDatabaseHas('users', ['id' => $user->id, 'angkatan' => '2026', 'agama' => 'islam']);
-        $this->postJson('/api/asrama/kamar/allocate')->assertOk()->assertJsonCount(1, 'allocated');
+        $batchId = DB::table('training_batches')->insertGetId(['source_id' => 'test-batch', 'name' => 'Test batch', 'synced_at' => now()]);
+        DB::table('training_participants')->insert(['source_id' => 'test-user', 'batch_id' => $batchId, 'user_id' => $user->id]);
+        $this->postJson('/api/asrama/kamar/allocate', ['batch_id' => $batchId])->assertOk()->assertJsonCount(1, 'allocated');
         $this->patchJson('/api/asrama/allocation-users/'.$user->id, $profile)->assertUnprocessable();
         $this->getJson('/api/asrama/kamar?q=501')->assertOk()->assertJsonPath('records.data.0.penghuni_count', 1)->assertJsonPath('records.data.0.status', 'Assigned')->assertJsonPath('records.data.0.penghuni.0.name', $user->name);
         $this->get('/kamar?q=501')->assertOk()->assertSee($user->name)->assertSee('Assigned');

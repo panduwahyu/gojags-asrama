@@ -20,20 +20,20 @@ class ComplaintTest extends TestCase
         $this->actingAs($user)->postJson('/api/asrama/user/keluhan', ['judul' => 'Kran bocor', 'isi' => 'Kran kamar 501 bocor.', 'status' => 'Resolved', 'user_id' => $other->id])->assertCreated();
         $id = DB::table('keluhan_asrama')->value('id');
         $this->assertDatabaseHas('keluhan_asrama', ['id' => $id, 'user_id' => $user->id, 'status' => 'Diajukan', 'resolved_at' => null]);
-        $this->get('/user/kamar')->assertOk()->assertSee('Keluhan asrama')->assertSee('Kran bocor')->assertSee('10/10/2026 08:00 WIB')->assertDontSee('Tandai Resolved');
+        $this->get('/user/kamar?section=keluhan')->assertOk()->assertSee('Keluhan asrama')->assertSee('Kran bocor')->assertSee('10/10/2026 08:00 WIB')->assertDontSee('Tandai Resolved');
         $this->actingAs($other)->getJson('/api/asrama/user/keluhan')->assertJsonCount(0, 'records.data');
-        $this->get('/user/kamar')->assertDontSee('Kran bocor');
-        $this->actingAs($admin)->get('/kamar')->assertOk()->assertSee('Kran bocor')->assertSee('Tandai Resolved');
+        $this->get('/user/kamar?section=keluhan')->assertDontSee('Kran bocor');
+        $this->actingAs($admin)->get('/kamar?section=keluhan')->assertOk()->assertSee('Kran bocor')->assertSee('Tandai Resolved');
         $this->getJson('/api/asrama/keluhan')->assertJsonPath('records.data.0.user_name', $user->name)->assertJsonPath('records.data.0.created_at', '2026-10-10T01:00:00.000000Z');
         $this->travel(1)->hours();
         $this->patchJson('/api/asrama/keluhan/'.$id, ['status' => 'Resolved', 'isi' => 'forged', 'resolved_at' => '2000-01-01'])->assertOk();
         $this->assertDatabaseHas('keluhan_asrama', ['id' => $id, 'resolved_by' => $admin->id, 'status' => 'Resolved', 'isi' => 'Kran kamar 501 bocor.', 'resolved_at' => '2026-10-10 02:00:00']);
         $this->travel(1)->hours();
-        $this->patch('/keluhan/'.$id, ['status' => 'Resolved'])->assertRedirect('/kamar');
+        $this->patch('/keluhan/'.$id, ['status' => 'Resolved'])->assertRedirect('/kamar?section=keluhan');
         $this->assertDatabaseHas('keluhan_asrama', ['id' => $id, 'resolved_at' => '2026-10-10 02:00:00']);
         $this->actingAs($user)->getJson('/api/asrama/user/keluhan')->assertJsonPath('records.data.0.status', 'Resolved')->assertJsonPath('records.data.0.resolved_at', '2026-10-10T02:00:00.000000Z');
-        $this->get('/user/kamar')->assertSee('10/10/2026 09:00 WIB')->assertSee('Resolved');
-        $this->post('/user/keluhan', ['judul' => 'Lampu', 'isi' => 'Lampu mati'])->assertRedirect('/user/kamar');
+        $this->get('/user/kamar?section=keluhan')->assertSee('10/10/2026 09:00 WIB')->assertSee('Resolved');
+        $this->post('/user/keluhan', ['judul' => 'Lampu', 'isi' => 'Lampu mati'])->assertRedirect('/user/kamar?section=keluhan');
         $this->travelBack();
     }
 

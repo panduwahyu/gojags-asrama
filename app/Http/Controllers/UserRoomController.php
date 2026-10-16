@@ -25,6 +25,8 @@ class UserRoomController extends Controller
                 'checked_in_at' => $this->iso($stay->checked_in_at), 'checked_out_at' => $this->iso($stay->checked_out_at),
             ]);
         $data = [
+            'batch' => DB::table('training_participants')->join('training_batches', 'training_batches.id', '=', 'batch_id')
+                ->where('user_id', $request->user()->id)->where('active', true)->first(['training_batches.id', 'training_batches.name']),
             'page' => 'user-kamar',
             'room' => $slot ? ['name' => $slot->name, 'lantai' => $slot->lantai, 'checked_in_at' => $this->iso($slot->checked_in_at)] : null,
             'history' => $history,
@@ -50,14 +52,29 @@ class UserRoomController extends Controller
         return $this->transition($request, true);
     }
 
-    private function transition(Request $request, bool $checkout)
+    public function scan(Request $request)
     {
-        DB::transaction(function () use ($request, $checkout) {
+        return $this->transition($request, null);
+    }
+
+    private function transition(Request $request, ?bool $checkout)
+    {
+        $data = $request->validate(['qr_token' => ['required', 'string', 'regex:/\Agojags-room:v1:[a-f0-9]{64}\z/']]);
+        $checkout = DB::transaction(function () use ($request, $checkout, $data) {
             // Match the allocator/profile lock order to serialize occupancy changes.
             DB::table('kamar')->orderByDesc('lantai')->orderBy('name')->lockForUpdate()->get();
             $user = DB::table('users')->where('id', $request->user()->id)->lockForUpdate()->first();
             $slot = DB::table('kamar_slots')->where('user_id', $user->id)->lockForUpdate()->first();
             if (!$slot) throw ValidationException::withMessages(['room' => 'Anda belum memiliki alokasi kamar.']);
+            $session = DB::table('room_qr_sessions')->where('token_hash', hash('sha256', substr($data['qr_token'], strlen('gojags-room:v1:'))))->lockForUpdate()->first();
+            if (!$session || $session->revoked_at || Carbon::parse($session->expires_at)->lte(now())) {
+                throw ValidationException::withMessages(['qr_token' => 'QR tidak valid, kedaluwarsa, atau telah diganti. Minta QR terbaru kepada admin.']);
+            }
+            $member = DB::table('training_participants')->where('user_id', $user->id)->where('batch_id', $session->batch_id)->where('active', true)->exists();
+            if (!$member) throw ValidationException::withMessages(['qr_token' => 'QR ini bukan untuk batch peserta Anda.']);
+            $sessionCheckout = $session->action === 'check-out';
+            if ($checkout !== null && $checkout !== $sessionCheckout) throw ValidationException::withMessages(['qr_token' => 'Jenis QR tidak sesuai dengan aksi yang diminta.']);
+            $checkout = $sessionCheckout;
             $room = DB::table('kamar')->find($slot->kamar_id);
             $time = now();
             if ($checkout) {
@@ -76,6 +93,7 @@ class UserRoomController extends Controller
                 DB::table('kamar_slots')->where('id', $slot->id)->update(['checked_in_at' => $time, 'updated_at' => $time]);
             }
             RoomStatus::sync($room->id);
+            return $checkout;
         }, 3);
         $message = $checkout ? 'Check-out berhasil. Slot kamar telah dilepaskan.' : 'Check-in berhasil.';
         return $request->expectsJson() ? response()->json(['message' => $message]) : redirect('/user/kamar')->with('success', $message);

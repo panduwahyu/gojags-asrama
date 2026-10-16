@@ -2,6 +2,11 @@
 
 return [
 
+    'api_gojags' => [
+        'url' => env('API_GOJAGS_URL'),
+        'token' => env('API_GOJAGS_TOKEN'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

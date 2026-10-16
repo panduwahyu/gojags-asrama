@@ -64,7 +64,7 @@ class LeavePermissionController extends Controller
     private function response(Request $request, string $message, int $status = 200)
     {
         return $request->expectsJson() ? response()->json(['message' => $message], $status)
-            : redirect($request->user()->role === 'admin' ? '/kamar' : '/user/kamar')->with('success', $message);
+            : redirect($request->user()->role === 'admin' ? '/kamar?section=perizinan' : '/user/kamar?section=perizinan')->with('success', $message);
     }
 
     public function store(Request $request)

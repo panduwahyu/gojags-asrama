@@ -3,12 +3,18 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "guzzlehttp/guzzle": "^7.9",
         "laravel/framework": "^10.48",
-        "laravel/tinker": "^2.10.1"
+        "laravel/tinker": "^2.10.1",
+        "bacon/bacon-qr-code": "^3.0",
+        "ext-xmlwriter": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

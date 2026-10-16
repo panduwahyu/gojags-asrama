@@ -55,7 +55,7 @@ class ComplaintController extends Controller
         ]);
         $message = 'Keluhan asrama berhasil dikirim.';
         return $request->expectsJson() ? response()->json(['message' => $message], 201)
-            : redirect('/user/kamar')->with('success', $message);
+            : redirect('/user/kamar?section=keluhan')->with('success', $message);
     }
 
     public function resolve(Request $request, int $id)
@@ -71,6 +71,6 @@ class ComplaintController extends Controller
         }, 3);
         $message = 'Keluhan ditandai Resolved.';
         return $request->expectsJson() ? response()->json(['message' => $message])
-            : redirect('/kamar')->with('success', $message);
+            : redirect('/kamar?section=keluhan')->with('success', $message);
     }
 }

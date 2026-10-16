@@ -6,9 +6,9 @@ use Illuminate\Support\Facades\DB;
 
 class RoomAllocator
 {
-    public function allocate(): array
+    public function allocate(?int $batchId = null): array
     {
-        return DB::transaction(function () {
+        return DB::transaction(function () use ($batchId) {
             // All allocation/profile requests take these locks in the same order.
             $rooms = DB::table('kamar')->orderByDesc('lantai')->orderBy('name')->lockForUpdate()->get()->keyBy('id');
             $users = DB::table('users')->orderBy('id')->lockForUpdate()->get()->keyBy('id');
@@ -27,7 +27,8 @@ class RoomAllocator
                 }
             }
             $departed = DB::table('kamar_stays')->whereNotNull('checked_out_at')->pluck('user_id')->flip();
-            $pending = $users->filter(fn ($user) => $user->role === 'user' && !isset($assignedIds[$user->id]) && !isset($departed[$user->id]));
+            $batchUsers = $batchId === null ? null : DB::table('training_participants')->where('batch_id', $batchId)->where('active', true)->pluck('user_id')->flip();
+            $pending = $users->filter(fn ($user) => $user->role === 'user' && ($batchUsers === null || isset($batchUsers[$user->id])) && !isset($assignedIds[$user->id]) && !isset($departed[$user->id]));
             $incomplete = $pending->filter(fn ($user) => !$user->angkatan || !$user->gender || !$user->agama);
             $groups = $pending->diffKeys($incomplete)->groupBy('angkatan')->sortKeys(SORT_NATURAL);
             $allocated = [];

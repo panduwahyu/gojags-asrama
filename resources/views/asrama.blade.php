@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/asrama.css') }}">
     <link rel="stylesheet" href="{{ asset('css/asrama-dark.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/asrama-sidebar.css') }}">
 <link rel="stylesheet" href="{{ asset('css/asrama-tables.css') }}">
 <script src="{{ asset('js/asrama-tables.js') }}" defer></script>
     <link rel="stylesheet" href="{{ asset('css/asrama-feedback.css') }}">
@@ -36,8 +37,26 @@
     <a class="brand" href="{{ url('/') }}"><img src="{{ asset('images/gojags.png') }}" alt="Logo Gojags"><span>Asrama<small>GOJAGS · PUSDIKLAT BPS</small></span></a>
     <div class="nav-label">MENU UTAMA</div>
     <nav aria-label="Navigasi utama">
+        @php
+            $roomBase = auth()->user()->role === 'admin' ? '/kamar' : '/user/kamar';
+            $roomPage = auth()->user()->role === 'admin' ? 'kamar' : 'user-kamar';
+            $roomPrimary = auth()->user()->role === 'admin' ? 'Alokasi Kamar' : 'Check-in/Check-out';
+            $currentMenu = str_replace('-', '/', $page);
+            $roomSection = in_array(request('section'), ['perizinan', 'keluhan'], true) ? request('section') : 'alokasi';
+        @endphp
         @foreach($menus as $key => [$label, $icon])
-            <a href="{{ url($key === 'beranda' ? '/' : '/'.$key) }}" class="nav-item {{ str_replace('-', '/', $page) === $key ? 'active' : '' }}" @if(str_replace('-', '/', $page) === $key) aria-current="page" @endif><svg><use href="#{{ $icon }}"/></svg>{{ $label }}<span class="nav-chevron">›</span></a>
+            @if(in_array($key, ['kamar', 'user/kamar'], true))
+                <details class="nav-group" @if($page === $roomPage) open @endif>
+                    <summary class="nav-item"><svg><use href="#bed"/></svg>Kamar<svg class="nav-group-chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></summary>
+                    <div class="nav-submenu">
+                        @foreach(['alokasi' => $roomPrimary, 'perizinan' => 'Perizinan', 'keluhan' => 'Keluhan Asrama'] as $section => $title)
+                            <a href="{{ url($roomBase).($section === 'alokasi' ? '' : '?section='.$section) }}" class="nav-item {{ $page === $roomPage && $roomSection === $section ? 'active' : '' }}" @if($page === $roomPage && $roomSection === $section) aria-current="page" @endif>{{ $title }}</a>
+                        @endforeach
+                    </div>
+                </details>
+            @else
+                <a href="{{ url($key === 'beranda' ? '/' : '/'.$key) }}" class="nav-item {{ $currentMenu === $key ? 'active' : '' }}" @if($currentMenu === $key) aria-current="page" @endif><svg><use href="#{{ $icon }}"/></svg>{{ $label }}</a>
+            @endif
         @endforeach
     </nav>
     <div class="sidebar-bottom"><form method="POST" action="{{ url('/logout') }}">@csrf<button class="btn full"><svg><use href="#login"/></svg>Logout</button></form></div>
@@ -49,7 +68,15 @@
         @if($page === 'user')
             <section class="hero user-welcome"><div class="hero-copy"><span class="eyebrow">GOJAGS ASRAMA</span><h1>Selamat datang di<br>Gojags <em>Asrama.</em></h1><p class="welcome-name">{{ auth()->user()->name }}</p></div></section>
         @elseif($page === 'user-kamar')
-            @include('user-room')
+            @if($roomSection === 'perizinan')
+                <h1>Perizinan</h1>
+                @include('partials.leave-permissions')
+            @elseif($roomSection === 'keluhan')
+                <h1>Keluhan Asrama</h1>
+                @include('partials.complaints')
+            @else
+                @include('user-room')
+            @endif
         @elseif($page === 'user-laundry')
             @include('laundry', ['laundryAdmin' => false])
         @elseif($page === 'user-catering')
@@ -73,9 +100,15 @@
         @elseif($page === 'login')
             <section class="login-card card"><span class="icon-box kamar"><svg><use href="#login"/></svg></span><h1>Login ke Asrama</h1><p>Masuk dengan akun pengelola untuk mengelola layanan asrama.</p><form method="POST" action="{{ url('/login') }}">@csrf<label>Email<input type="email" name="email" value="{{ old('email') }}" autocomplete="username" required placeholder="nama@bps.go.id"></label><label>Kata sandi<input type="password" name="password" autocomplete="current-password" required placeholder="Masukkan kata sandi"></label><button class="btn full">Login <svg><use href="#arrow"/></svg></button></form></section>
         @else
-            <div class="section-title page-title"><div><span class="overline">LAYANAN ASRAMA</span><h1>{{ $page === 'user' ? 'Beranda' : ucfirst(str_replace('user-', '', $page)) }}</h1><p>{{ ['kamar' => 'Kelola informasi dan ketersediaan kamar asrama.', 'laundry' => 'Catat pesanan dan pantau status laundry.', 'catering' => 'Atur menu dan jadwal catering asrama.'][$page] }}</p></div><span class="section-tag">{{ $counts[$page] }} data tercatat</span></div>
+            <div class="section-title page-title"><div><span class="overline">LAYANAN ASRAMA</span><h1>{{ $page === 'kamar' ? ['alokasi' => 'Alokasi Kamar', 'perizinan' => 'Perizinan', 'keluhan' => 'Keluhan Asrama'][$roomSection] : ($page === 'user' ? 'Beranda' : ucfirst(str_replace('user-', '', $page))) }}</h1><p>{{ ['kamar' => 'Kelola informasi dan ketersediaan kamar asrama.', 'laundry' => 'Catat pesanan dan pantau status laundry.', 'catering' => 'Atur menu dan jadwal catering asrama.'][$page] }}</p></div><span class="section-tag">{{ $counts[$page] }} data tercatat</span></div>
             @if($page === 'kamar')
-                @include('rooms')
+                @if($roomSection === 'perizinan')
+                    @include('partials.leave-permissions')
+                @elseif($roomSection === 'keluhan')
+                    @include('partials.complaints')
+                @else
+                    @include('rooms')
+                @endif
             @elseif($page === 'laundry')
                 @include('laundry', ['laundryAdmin' => true])
             @elseif($page === 'catering')

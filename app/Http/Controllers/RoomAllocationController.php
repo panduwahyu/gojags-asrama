@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\RoomAllocator;
+use App\Services\TrainingSync;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -12,10 +13,20 @@ class RoomAllocationController extends Controller
 {
     public function allocate(Request $request, RoomAllocator $allocator)
     {
-        $result = $allocator->allocate();
+        $data = $request->validate(['batch_id' => ['required', 'integer', 'exists:training_batches,id']]);
+        $result = $allocator->allocate((int) $data['batch_id']);
         $message = count($result['allocated']).' user dialokasikan. '.count($result['incomplete']).' profil belum lengkap. '.count($result['waiting']).' user menunggu kamar yang sesuai.';
         return $request->expectsJson()
             ? response()->json(['message' => $message] + $result)
+            : redirect('/kamar')->with('success', $message);
+    }
+
+    public function sync(Request $request, TrainingSync $sync)
+    {
+        $result = $sync->sync();
+        $message = $result['batches'].' batch dan '.$result['participants'].' peserta berhasil disinkronkan.';
+        return $request->expectsJson()
+            ? response()->json(['message' => $message, 'batches' => TrainingSync::batches()])
             : redirect('/kamar')->with('success', $message);
     }
 
